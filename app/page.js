@@ -1,3 +1,4 @@
+import { UserButton } from "@clerk/nextjs";
 import './styles.css';
 
 const plans = [
@@ -83,9 +84,8 @@ export default function Home() {
   </nav>
 
   <div className="provider">
-    <small>Logged in as</small>
-    <strong>Bela Beauty College</strong>
-  </div>
+  <UserButton afterSignOutUrl="/" />
+</div>
 </header>
       
 

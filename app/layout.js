@@ -1,12 +1,17 @@
+import { ClerkProvider } from '@clerk/nextjs';
+import './styles.css';
+
 export const metadata = {
-  title: 'StudentPay Provider Portal',
-  description: 'Provider dashboard for StudentPay payment plans'
+  title: 'StudentPay NZ Provider Portal',
+  description: 'StudentPay NZ Provider Portal',
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body>{children}</body>
+      </html>
+    </ClerkProvider>
   );
 }
