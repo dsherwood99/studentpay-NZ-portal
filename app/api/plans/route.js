@@ -1,3 +1,5 @@
+import { currentUser } from '@clerk/nextjs/server';
+
 async function getSalesforceToken() {
   const params = new URLSearchParams();
   params.append('grant_type', 'client_credentials');
@@ -23,6 +25,30 @@ async function getSalesforceToken() {
 
 export async function GET() {
   try {
+
+const user = await currentUser();
+
+const role = user?.publicMetadata?.role;
+const providerName = user?.publicMetadata?.providerName;
+
+if (!role) {
+  return Response.json({
+    success: true,
+    count: 0,
+    plans: [],
+    message: 'No role configured for this user.',
+  });
+}
+
+if (role === 'provider' && !providerName) {
+  return Response.json({
+    success: true,
+    count: 0,
+    plans: [],
+    message: 'No provider configured for this user.',
+  });
+}
+
     const tokenData = await getSalesforceToken();
 
     const soql = `
@@ -44,7 +70,10 @@ export async function GET() {
         Payment_Frequency__c,
         Arrears_Days_Calc__c
       FROM Opportunity
-      WHERE Education_Provider__c != null
+${role === 'admin'
+  ? 'WHERE Education_Provider__c != null'
+  : `WHERE Education_Provider__c.Name = '${providerName.replaceAll("'", "\\'")}'`
+}
       ORDER BY Agreement_Date__c DESC
       LIMIT 20
     `;
