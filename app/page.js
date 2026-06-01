@@ -11,6 +11,7 @@ export default function Home() {
   const [plans, setPlans] = useState([]);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     async function loadPlans() {
@@ -50,6 +51,18 @@ export default function Home() {
       currency: 'NZD',
       minimumFractionDigits: 2,
     }).format(Number(value || 0));
+
+const filteredPlans = plans.filter((plan) => {
+  const search = searchTerm.toLowerCase();
+
+  return (
+    plan.plan?.toLowerCase().includes(search) ||
+    plan.student?.toLowerCase().includes(search) ||
+    plan.course?.toLowerCase().includes(search) ||
+    plan.status?.toLowerCase().includes(search) ||
+    plan.authorisationStatus?.toLowerCase().includes(search)
+  );
+});
 
   return (
     <main className="portal">
@@ -122,7 +135,14 @@ export default function Home() {
             <h2>Payment Plans</h2>
             <p>Search, review and export current provider payment plans.</p>
           </div>
-          <input placeholder="Search by student, plan number or status" />
+          <input
+  type="text"
+  placeholder="Search plans..."
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value)}
+/>
+
+
         </div>
 
         <div className="table-wrap">
@@ -142,27 +162,29 @@ export default function Home() {
               </tr>
             </thead>
             <tbody>
-              {plans.map((plan) => (
-                <tr key={plan.plan}>
-                  <td>{plan.plan}</td>
-                  <td className="student-name">{plan.student}</td>
-                  <td>{plan.stage}</td>
-                  <td>{plan.authorisationStatus}</td>
-                  <td>{plan.agreementDate}</td>
-                  <td>
-                    <span className={`badge ${plan.status.toLowerCase().replaceAll(' ', '-')}`}>
-                      {plan.status}
-                    </span>
-                  </td>
-                  <td>{formatCurrency(plan.amount)}</td>
-                  <td>{formatCurrency(plan.remaining)}</td>
-                  <td>{formatCurrency(plan.overdue)}</td>
-                  <td><button className="view-button" onClick={() => setSelectedPlan(plan)}>
-    Details
-  </button></td>
-                </tr>
-              ))}
-            </tbody>
+  {filteredPlans.map((plan) => (
+    <tr key={plan.id || plan.plan}>
+      <td>{plan.plan}</td>
+      <td className="student-name">{plan.student}</td>
+      <td>{plan.stage}</td>
+      <td>{plan.authorisationStatus}</td>
+      <td>{plan.agreementDate}</td>
+      <td>
+        <span className={`badge ${plan.status.toLowerCase().replaceAll(' ', '-')}`}>
+          {plan.status}
+        </span>
+      </td>
+      <td>{formatCurrency(plan.amount)}</td>
+      <td>{formatCurrency(plan.remaining)}</td>
+      <td>{formatCurrency(plan.overdue)}</td>
+      <td>
+        <button className="view-button" onClick={() => setSelectedPlan(plan)}>
+          Details
+        </button>
+      </td>
+    </tr>
+  ))}
+</tbody>
           </table>
         </div>
       </section>

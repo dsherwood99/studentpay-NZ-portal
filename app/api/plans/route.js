@@ -76,7 +76,7 @@ ${role === 'admin'
   : `WHERE Education_Provider__c = '${providerName.replaceAll("'", "\\'")}'`
 }
       ORDER BY Agreement_Date__c DESC
-      LIMIT 20
+      LIMIT 50
     `;
 
     const response = await fetch(
