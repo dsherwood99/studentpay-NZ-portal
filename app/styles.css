@@ -401,10 +401,10 @@ td {
   }
 
   .logo {
-  height: 60px;
-  width: auto;
-  display: block;
-}
+    height: 60px;
+    width: auto;
+    display: block;
+  }
 
   .nav {
     justify-content: flex-start;
@@ -435,5 +435,162 @@ td {
     grid-template-columns: 1fr;
     gap: 4px;
   }
+}
 
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 32% 68%;
+  background: #ffffff;
+}
+
+.auth-left {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 56px;
+  background: #ffffff;
+}
+
+.auth-content {
+  width: 100%;
+  max-width: 650px;
+}
+
+.auth-logo {
+  height: 90px;
+  width: auto;
+  margin-bottom: 42px;
+}
+
+.auth-content h1 {
+  font-size: 58px;
+  line-height: 1.12;
+  margin: 0 0 24px;
+  color: var(--navy);
+  letter-spacing: -0.045em;
+}
+
+.auth-content h1 span {
+  color: var(--green);
+}
+
+.auth-content p {
+  color: var(--muted);
+  margin: 0 0 28px;
+  font-size: 18px;
+  line-height: 1.45;
+}
+
+.auth-clerk-root {
+  width: 100% !important;
+}
+
+.auth-clerk-card {
+  width: 100% !important;
+  max-width: 620px !important;
+}
+
+.auth-form-wrap {
+  width: 100%;
+  max-width: 620px;
+}
+
+.auth-right {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(7, 26, 51, 0.08), rgba(7, 26, 51, 0.22)),
+    url('/portal-login.png');
+  background-size: cover;
+  background-position: 42% center;
+}
+
+.auth-hero-text {
+  position: absolute;
+  top: 34%;
+  left: 7%;
+  max-width: 560px;
+  color: white;
+}
+
+.auth-hero-text h2 {
+  margin: 0 0 22px;
+  font-size: 56px;
+  line-height: 1.12;
+  letter-spacing: -0.045em;
+}
+
+.auth-hero-text h2 span {
+  color: var(--green);
+}
+
+.auth-hero-text p {
+  margin: 0;
+  font-size: 25px;
+  line-height: 1.45;
+  max-width: 620px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.auth-image-overlay {
+  display: none;
+}
+
+.auth-image-overlay h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.auth-image-overlay p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.84);
+}
+
+/* Clerk sign-in styling */
+
+
+.auth-clerk-title {
+  color: var(--navy);
+  font-size: 28px;
+  letter-spacing: -0.04em;
+}
+
+.auth-clerk-subtitle {
+  color: var(--muted);
+}
+
+.auth-clerk-input {
+  border: 1px solid var(--green);
+  border-radius: 8px;
+}
+
+.auth-clerk-button {
+  background: var(--green);
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.auth-clerk-link {
+  color: var(--green);
+  font-weight: 800;
+}
+
+@media (max-width: 1000px) {
+  .auth-page {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-right {
+    display: none;
+  }
+
+  .auth-left {
+    padding: 36px 24px;
+  }
+
+  .auth-content h1 {
+    font-size: 36px;
+  }
 }
