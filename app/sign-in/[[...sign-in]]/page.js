@@ -24,7 +24,7 @@ export default function SignInPage() {
               routing="path"
               path="/sign-in"
               afterSignInUrl="/"
-              signUpUrl="/sign-up"
+              
               appearance={{
                 elements: {
                   rootBox: 'auth-clerk-root',
@@ -35,7 +35,7 @@ export default function SignInPage() {
                   formFieldInput: 'auth-clerk-input',
                   footerActionLink: 'auth-clerk-link',
                 },
-              }}
+            }}
             />
           </div>
         </div>
