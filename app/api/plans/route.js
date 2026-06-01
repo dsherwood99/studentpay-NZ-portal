@@ -63,6 +63,7 @@ if (role === 'provider' && !providerName) {
         Authorisation_Status__c,
         Payer_Contact__r.Name,
         Course_Name__c,
+        Remaining_Balance__c,
         Current_Balance__c,
         Overdue_Balance__c,
         Arrears_Category__c,
@@ -72,7 +73,7 @@ if (role === 'provider' && !providerName) {
       FROM Opportunity
 ${role === 'admin'
   ? 'WHERE Education_Provider__c != null'
-  : `WHERE Education_Provider__c.Name = '${providerName.replaceAll("'", "\\'")}'`
+  : `WHERE Education_Provider__c = '${providerName.replaceAll("'", "\\'")}'`
 }
       ORDER BY Agreement_Date__c DESC
       LIMIT 20
@@ -107,7 +108,7 @@ ${role === 'admin'
       authorisationStatus: record.Authorisation_Status__c || '',
       agreementDate: record.Agreement_Date__c || '',
       amount: record.Amount || 0,
-      remaining: record.Current_Balance__c || 0,
+      remaining: record.Remaining_Balance__c || 0,
       overdue: record.Overdue_Balance__c || 0,
       status: record.Arrears_Category__c || 'No Arrears',
       course: record.Course_Name__c || '',

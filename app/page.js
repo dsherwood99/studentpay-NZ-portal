@@ -59,8 +59,9 @@ export default function Home() {
     
 <header className="topbar">
   <div className="brand-logo">
-    <img src="/studentpay-logo.png" alt="StudentPay" className="logo" />
-    <span className="logo-region">NZ</span>
+    <img src="/studentpay-logo.png" alt="StudentPay" style={{ height: '70px' }} />
+    <span className="brand-divider"></span>
+    <span className="logo-region">New Zealand</span>
   </div>
 
   <nav className="nav">
