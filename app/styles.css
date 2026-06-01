@@ -439,16 +439,18 @@ td {
 
 .auth-page {
   min-height: 100vh;
+  height: 100vh;
   display: grid;
   grid-template-columns: 32% 68%;
   background: #ffffff;
+  overflow: hidden;
 }
 
 .auth-left {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 56px;
+  padding: 36px 50px;
   background: #ffffff;
 }
 
@@ -464,9 +466,9 @@ td {
 }
 
 .auth-content h1 {
-  font-size: 58px;
+  font-size: 46px;
   line-height: 1.12;
-  margin: 0 0 24px;
+  margin: 0 0 18px;
   color: var(--navy);
   letter-spacing: -0.045em;
 }
@@ -478,8 +480,8 @@ td {
 .auth-content p {
   color: var(--muted);
   margin: 0 0 28px;
-  font-size: 18px;
-  line-height: 1.45;
+  font-size: 16px;
+  line-height: 1.35;
 }
 
 .auth-clerk-root {
@@ -488,23 +490,24 @@ td {
 
 .auth-clerk-card {
   width: 100% !important;
-  max-width: 620px !important;
+  max-width: 550px !important;
 }
 
 .auth-form-wrap {
   width: 100%;
-  max-width: 620px;
+  max-width: 550px;
 }
 
 .auth-right {
   position: relative;
   min-height: 100vh;
+  height: 100vh;
   overflow: hidden;
   background:
     linear-gradient(rgba(7, 26, 51, 0.08), rgba(7, 26, 51, 0.22)),
     url('/portal-login.png');
   background-size: cover;
-  background-position: 42% center;
+  background-position: 50% center;
 }
 
 .auth-hero-text {
