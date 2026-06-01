@@ -20,23 +20,11 @@ export default function SignInPage() {
           </p>
 
           <div className="auth-form-wrap">
-            <SignIn
-              routing="path"
-              path="/sign-in"
-              afterSignInUrl="/"
-              signUpUrl="/sign-up"
-              appearance={{
-                elements: {
-                  rootBox: 'auth-clerk-root',
-                  card: 'auth-clerk-card',
-                  headerTitle: 'auth-clerk-title',
-                  headerSubtitle: 'auth-clerk-subtitle',
-                  formButtonPrimary: 'auth-clerk-button',
-                  formFieldInput: 'auth-clerk-input',
-                  footerActionLink: 'auth-clerk-link',
-                },
-            }}
-            />
+<SignIn
+  routing="path"
+  path="/sign-in"
+  forceRedirectUrl="/"
+/>
           </div>
         </div>
       </section>
