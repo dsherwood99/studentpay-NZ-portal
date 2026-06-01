@@ -66,6 +66,15 @@ body {
   letter-spacing: 0.06em;
 }
 
+.loading-box {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
 .nav {
   display: flex;
   gap: 10px;

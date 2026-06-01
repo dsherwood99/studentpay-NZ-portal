@@ -1,74 +1,61 @@
-import { UserButton } from "@clerk/nextjs";
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import { UserButton } from '@clerk/nextjs';
 import './styles.css';
 
-const plans = [
-  {
-    plan: 'NZ-000128',
-    student: 'Sarah Thompson',
-      stage: 'Payment Plan Signed',
-  authorisationStatus: 'Active',
-    course: 'Diploma of Beauty Therapy',
-    agreementDate: '27 May 2026',
-    status: 'Current',
-    paid: '$1,200',
-    amount: '$3,600',
-    remaining: '$2,400',
-    overdue: '$0',
-    nextPayment: '03 Jun 2026',
-    lastPayment: '27 May 2026',
-    arrears: 'No Arrears',
-    daysInArrears: '0',
-    frequency: 'Weekly',
-    paymentAmount: '$150',
-    authorisation: 'Active',
-  },
-  {
-    plan: 'NZ-000129',
-    student: 'Emily Roberts',
-      stage: 'Payment Plan Signed',
-  authorisationStatus: 'In Progress',
-    course: 'Certificate in Makeup Artistry',
-    agreementDate: '10 May 2026',
-    status: 'Overdue',
-    paid: '$900',
-    amount: '$3,200',
-    remaining: '$3,150',
-    overdue: '$450',
-    nextPayment: '31 May 2026',
-    lastPayment: '10 May 2026',
-    arrears: '16 - 30 Days',
-    daysInArrears: '21',
-    frequency: 'Weekly',
-    paymentAmount: '$150',
-    authorisation: 'Active',
-  },
-  {
-    plan: 'NZ-000130',
-    student: 'Jessica Martin',
-      stage: 'Payment Plan Signed',
-  authorisationStatus: 'Active',
-    course: 'Eyelash Extension Course Bundle',
-    agreementDate: '15 Apr 2026',
-    status: 'Serious Arrears',
-    paid: '$450',
-    amount: '$5,600',
-    remaining: '$4,050',
-    overdue: '$1,350',
-    nextPayment: 'Overdue',
-    lastPayment: '15 Apr 2026',
-    arrears: '61 - 90 Days',
-    daysInArrears: '66',
-    frequency: 'Fortnightly',
-    paymentAmount: '$225',
-    authorisation: 'Active',
-  },
-];
 
-const selectedPlan = plans[1];
 
 export default function Home() {
+
+  const [plans, setPlans] = useState([]);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadPlans() {
+      const response = await fetch('/api/plans');
+      const data = await response.json();
+
+      if (data.success) {
+        setPlans(data.plans);
+        setSelectedPlan(data.plans[0] || null);
+      }
+
+      setLoading(false);
+    }
+
+    loadPlans();
+  }, []);
+
+  const summary = useMemo(() => {
+    const activePlans = plans.length;
+    const totalAmount = plans.reduce((sum, plan) => sum + Number(plan.amount || 0), 0);
+    const totalRemaining = plans.reduce((sum, plan) => sum + Number(plan.remaining || 0), 0);
+    const totalOverdue = plans.reduce((sum, plan) => sum + Number(plan.overdue || 0), 0);
+    const plansInArrears = plans.filter((plan) => Number(plan.overdue || 0) > 0).length;
+
+    return {
+      activePlans,
+      totalAmount,
+      totalRemaining,
+      totalOverdue,
+      plansInArrears,
+    };
+  }, [plans]);
+
+  const formatCurrency = (value) =>
+    new Intl.NumberFormat('en-NZ', {
+      style: 'currency',
+      currency: 'NZD',
+      minimumFractionDigits: 2,
+    }).format(Number(value || 0));
+
   return (
     <main className="portal">
+
+      {loading && <div className="loading-box">Loading Salesforce plans...</div>}
+{!loading && plans.length === 0 && <div className="loading-box">No plans found.</div>}
     
 <header className="topbar">
   <div className="brand-logo">
@@ -100,23 +87,23 @@ export default function Home() {
       <section className="summary-grid">
         <div className="summary-card">
           <span>Active Plans</span>
-          <strong className="green">28</strong>
+          <strong className="green">{summary.activePlans}</strong>
         </div>
         <div className="summary-card">
-          <span>Paid To Date</span>
-          <strong>$37,800</strong>
+          <span>Total Plan Amount</span>
+          <strong>{formatCurrency(summary.totalAmount)}</strong>
         </div>
         <div className="summary-card">
           <span>Current Balance</span>
-          <strong>$84,250</strong>
+          <strong>{formatCurrency(summary.totalRemaining)}</strong>
         </div>
         <div className="summary-card">
           <span>Overdue Balance</span>
-          <strong className="red">$4,650</strong>
+          <strong className="red">{formatCurrency(summary.totalOverdue)}</strong>
         </div>
         <div className="summary-card">
           <span>Plans in Arrears</span>
-          <strong className="orange">6</strong>
+          <strong className="orange">{summary.plansInArrears}</strong>
         </div>
       </section>
 
@@ -166,10 +153,12 @@ export default function Home() {
                       {plan.status}
                     </span>
                   </td>
-                  <td>{plan.amount}</td>
-                  <td>{plan.remaining}</td>
-                  <td>{plan.overdue}</td>
-                  <td><button className="view-button">Details</button></td>
+                  <td>{formatCurrency(plan.amount)}</td>
+                  <td>{formatCurrency(plan.remaining)}</td>
+                  <td>{formatCurrency(plan.overdue)}</td>
+                  <td><button className="view-button" onClick={() => setSelectedPlan(plan)}>
+    Details
+  </button></td>
                 </tr>
               ))}
             </tbody>
@@ -177,6 +166,7 @@ export default function Home() {
         </div>
       </section>
 
+      {selectedPlan && (
       <section className="detail-main">
         <div className="detail-heading">
           <h2>{selectedPlan.plan}</h2>
@@ -190,38 +180,37 @@ export default function Home() {
         </div>
 
         <div className="detail-card">
-          <div className="detail-section">
-            <h3>Plan Summary</h3>
-            <div className="detail-row"><span>Student</span><strong>{selectedPlan.student}</strong></div>
-            <div className="detail-row"><span>Course</span><strong>{selectedPlan.course}</strong></div>
-            <div className="detail-row"><span>Agreement Date</span><strong>{selectedPlan.agreementDate}</strong></div>
-            <div className="detail-row"><span>Plan Status</span><strong>{selectedPlan.status}</strong></div>
-            <div className="detail-row"><span>Authorisation Status</span><strong>{selectedPlan.authorisation}</strong></div>
-          </div>
+  <div className="detail-section">
+    <h3>Plan Summary</h3>
+    <div className="detail-row"><span>Student</span><strong>{selectedPlan.student}</strong></div>
+    <div className="detail-row"><span>Course</span><strong>{selectedPlan.course}</strong></div>
+    <div className="detail-row"><span>Agreement Date</span><strong>{selectedPlan.agreementDate}</strong></div>
+    <div className="detail-row"><span>Stage</span><strong>{selectedPlan.stage}</strong></div>
+    <div className="detail-row"><span>Authorisation Status</span><strong>{selectedPlan.authorisationStatus}</strong></div>
+  </div>
 
-          <div className="detail-section">
-            <h3>Financial Summary</h3>
-            <div className="detail-row"><span>Paid To Date</span><strong>{selectedPlan.paid}</strong></div>
-            <div className="detail-row"><span>Current Balance</span><strong>{selectedPlan.remaining}</strong></div>
-            <div className="detail-row"><span>Overdue Balance</span><strong>{selectedPlan.overdue}</strong></div>
-            <div className="detail-row"><span>Last Payment</span><strong>{selectedPlan.lastPayment}</strong></div>
-            <div className="detail-row"><span>Next Payment</span><strong>{selectedPlan.nextPayment}</strong></div>
-          </div>
+  <div className="detail-section">
+    <h3>Financial Summary</h3>
+    <div className="detail-row"><span>Total Plan Amount</span><strong>{formatCurrency(selectedPlan.amount)}</strong></div>
+    <div className="detail-row"><span>Remaining Balance</span><strong>{formatCurrency(selectedPlan.remaining)}</strong></div>
+    <div className="detail-row"><span>Overdue Balance</span><strong>{formatCurrency(selectedPlan.overdue)}</strong></div>
+  </div>
 
-          <div className="detail-section">
-            <h3>Payment Schedule</h3>
-            <div className="detail-row"><span>Payment Frequency</span><strong>{selectedPlan.frequency}</strong></div>
-            <div className="detail-row"><span>Instalment Amount</span><strong>{selectedPlan.paymentAmount}</strong></div>
-          </div>
+  <div className="detail-section">
+    <h3>Payment Schedule</h3>
+    <div className="detail-row"><span>Payment Frequency</span><strong>{selectedPlan.frequency}</strong></div>
+    <div className="detail-row"><span>Instalment Amount</span><strong>{formatCurrency(selectedPlan.paymentAmount)}</strong></div>
+  </div>
 
-          <div className="detail-section">
-            <h3>Collections Summary</h3>
-            <div className="detail-row"><span>Arrears Category</span><strong>{selectedPlan.arrears}</strong></div>
-            <div className="detail-row"><span>Days in Arrears</span><strong>{selectedPlan.daysInArrears}</strong></div>
-            <div className="detail-row"><span>Overdue Balance</span><strong>{selectedPlan.overdue}</strong></div>
-          </div>
-        </div>
+  <div className="detail-section">
+    <h3>Collections Summary</h3>
+    <div className="detail-row"><span>Arrears Category</span><strong>{selectedPlan.status}</strong></div>
+    <div className="detail-row"><span>Days in Arrears</span><strong>{selectedPlan.daysInArrears}</strong></div>
+    
+  </div>
+</div>
       </section>
+      )}
     </main>
   );
 }
