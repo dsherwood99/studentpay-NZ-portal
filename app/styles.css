@@ -507,7 +507,7 @@ td {
     linear-gradient(rgba(7, 26, 51, 0.08), rgba(7, 26, 51, 0.22)),
     url('/portal-login.png');
   background-size: cover;
-  background-position: 50% center;
+  background-position: 72% center;
 }
 
 .auth-hero-text {
