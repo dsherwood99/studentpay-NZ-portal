@@ -273,7 +273,7 @@ const exportCSV = () => {
 
           <span className="preview-region">New Zealand</span>
 
-          <span className="preview-badge">Preview</span>
+          
         </div>
 
         
