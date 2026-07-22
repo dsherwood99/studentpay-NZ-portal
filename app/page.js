@@ -85,7 +85,7 @@ const filteredPlans = plans.filter((plan) => {
   </nav>
 
   <div className="provider">
-  <UserButton afterSignOutUrl="/" />
+  <UserButton afterSignOutUrl="/sign-in" />
 </div>
 </header>
       
