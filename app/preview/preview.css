@@ -248,24 +248,13 @@ button {
   text-transform: uppercase;
 }
 
-.kpi-lower {
-  display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr);
-  gap: 16px;
-  align-items: stretch;
-}
-
 .summary-grid {
   display: grid;
   gap: 12px;
 }
 
 .summary-grid-core {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.summary-grid-risk {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .summary-card {
@@ -312,15 +301,6 @@ button {
 
 .summary-card.featured-card strong {
   color: var(--brand-primary-dark);
-}
-
-.summary-card.risk-card {
-  background: var(--brand-background);
-}
-
-.summary-card .overdue-value,
-.summary-card .purple-value {
-  color: var(--brand-accent-dark);
 }
 
 .export-summary-card {
@@ -897,11 +877,7 @@ button {
 
 @media (max-width: 1200px) {
   .summary-grid-core {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .kpi-lower {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -943,8 +919,7 @@ button {
     font-size: 28px;
   }
 
-  .summary-grid-core,
-  .summary-grid-risk {
+  .summary-grid-core {
     grid-template-columns: 1fr 1fr;
   }
 
@@ -974,8 +949,7 @@ button {
 }
 
 @media (max-width: 480px) {
-  .summary-grid-core,
-  .summary-grid-risk {
+  .summary-grid-core {
     grid-template-columns: 1fr;
   }
 

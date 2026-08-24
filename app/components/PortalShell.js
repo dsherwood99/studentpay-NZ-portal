@@ -53,15 +53,6 @@ export default function PortalShell({
       0
     );
 
-    const totalOverdue = plans.reduce(
-      (sum, plan) => sum + Number(plan.overdue || 0),
-      0
-    );
-
-    const plansInArrears = plans.filter(
-      (plan) => Number(plan.overdue || 0) > 0
-    ).length;
-
     const currentPlans = plans.filter(
       (plan) => plan.status === 'No Arrears'
     ).length;
@@ -93,8 +84,6 @@ export default function PortalShell({
       totalAmount,
       totalCollected,
       totalRemaining,
-      totalOverdue,
-      plansInArrears,
       currentPlans,
       arrears1To15,
       arrears16To30,
@@ -341,30 +330,6 @@ export default function PortalShell({
                   <span>Current Balance</span>
                   <strong>{formatCurrency(summary.totalRemaining)}</strong>
                 </article>
-              </div>
-            </div>
-
-            <div className="kpi-lower">
-              <div className="kpi-group kpi-group-risk">
-                <h2 className="kpi-heading">Collection / risk</h2>
-                <div className="summary-grid summary-grid-risk">
-                  <article className="summary-card risk-card">
-                    <span>Overdue Balance</span>
-                    <strong className="overdue-value">
-                      {formatCurrency(summary.totalOverdue)}
-                    </strong>
-                  </article>
-                  <article className="summary-card risk-card">
-                    <span>Plans in Arrears</span>
-                    <strong className="purple-value">
-                      {summary.plansInArrears}
-                    </strong>
-                  </article>
-                </div>
-              </div>
-
-              <div className="kpi-group kpi-group-action">
-                <h2 className="kpi-heading">Actions</h2>
                 <button
                   type="button"
                   className="summary-card export-summary-card"
