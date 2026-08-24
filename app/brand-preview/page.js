@@ -4,10 +4,13 @@ import BrandPreviewClient from './BrandPreviewClient';
 export const dynamic = 'force-dynamic';
 
 function isBrandPreviewEnabled() {
-  return (
-    process.env.NODE_ENV !== 'production' &&
-    process.env.ENABLE_BRAND_PREVIEW === 'true'
-  );
+  // Vercel Preview builds also set NODE_ENV=production.
+  // Block only the Production environment; never enable there.
+  if (process.env.VERCEL_ENV === 'production') {
+    return false;
+  }
+
+  return process.env.ENABLE_BRAND_PREVIEW === 'true';
 }
 
 export default function BrandPreviewPage() {
