@@ -10,6 +10,11 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import {
+  collectedThroughLabel,
+  comparisonToneClass,
+  settlementLagNote,
+} from '../../lib/collections-copy.js';
 
 function formatCurrency(value) {
   return new Intl.NumberFormat('en-NZ', {
@@ -134,8 +139,7 @@ function comparisonCopy(collections) {
     return 'Flat vs same period last month';
   }
 
-  const direction = collections.comparison_percent > 0 ? 'up' : 'down';
-  const arrow = direction === 'up' ? '↑' : '↓';
+  const arrow = collections.comparison_percent > 0 ? '↑' : '↓';
 
   return `${arrow} ${formatPercent(collections.comparison_percent)}% vs same period last month`;
 }
@@ -147,12 +151,7 @@ export default function CollectionsChart({
 }) {
   const rows = buildChartRows(collections);
   const comparison = comparisonCopy(collections);
-  const comparisonClass =
-    collections?.comparison_percent > 0
-      ? 'collections-comparison-up'
-      : collections?.comparison_percent < 0
-        ? 'collections-comparison-down'
-        : 'collections-comparison-neutral';
+  const cutoffDate = collections?.reporting_cutoff_date;
   const isEmpty =
     !loading &&
     !errorMessage &&
@@ -168,13 +167,20 @@ export default function CollectionsChart({
           <p className="collections-mtd">
             {formatCurrency(collections?.current_month?.month_to_date || 0)}
           </p>
-          <p className="collections-mtd-label">Month to date</p>
+          <p className="collections-mtd-label">
+            {cutoffDate ? collectedThroughLabel(cutoffDate) : ''}
+          </p>
           {loading ? (
             <p className="collections-comparison-neutral">Loading collections…</p>
           ) : errorMessage ? (
             <p className="collections-comparison-down">{errorMessage}</p>
           ) : (
-            <p className={comparisonClass}>{comparison}</p>
+            <>
+              <p className={comparisonToneClass()}>{comparison}</p>
+              {cutoffDate ? (
+                <p className="collections-note">{settlementLagNote(cutoffDate)}</p>
+              ) : null}
+            </>
           )}
         </div>
       </div>

@@ -907,14 +907,16 @@ button {
   font-weight: 600;
 }
 
-.collections-header p:last-child {
+.collections-header .collections-comparison,
+.collections-header .collections-comparison-neutral,
+.collections-header .collections-comparison-down {
   margin: 8px 0 0;
   font-size: 14px;
   font-weight: 600;
 }
 
-.collections-comparison-up {
-  color: var(--brand-primary);
+.collections-comparison {
+  color: var(--brand-accent-dark);
 }
 
 .collections-comparison-down {
@@ -923,6 +925,14 @@ button {
 
 .collections-comparison-neutral {
   color: var(--brand-muted);
+}
+
+.collections-note {
+  margin: 6px 0 0;
+  color: var(--brand-muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
 }
 
 .collections-chart {
