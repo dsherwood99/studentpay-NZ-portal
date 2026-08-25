@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
+import CollectionsChart from './CollectionsChart';
 import '../preview/preview.css';
 
 function SearchIcon() {
@@ -29,6 +30,9 @@ export default function PortalShell({
   plans = [],
   loading = false,
   errorMessage = '',
+  collections = null,
+  collectionsLoading = false,
+  collectionsError = '',
   demoBanner = false,
   accountSlot = null,
 }) {
@@ -367,7 +371,19 @@ export default function PortalShell({
               <strong>{summary.arrears61Plus}</strong>
             </article>
           </section>
+        </>
+      )}
 
+      {(collectionsLoading || collectionsError || collections) && (
+        <CollectionsChart
+          collections={collections}
+          loading={collectionsLoading}
+          errorMessage={collectionsError}
+        />
+      )}
+
+      {!loading && !errorMessage && plans.length > 0 && (
+        <>
           <section className="preview-panel">
             <div className="preview-panel-header">
               <div>

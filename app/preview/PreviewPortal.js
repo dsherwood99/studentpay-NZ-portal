@@ -18,6 +18,9 @@ export default function PreviewPortal() {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [providerName, setProviderName] = useState('');
+  const [collections, setCollections] = useState(null);
+  const [collectionsLoading, setCollectionsLoading] = useState(true);
+  const [collectionsError, setCollectionsError] = useState('');
 
   useEffect(() => {
     async function loadPlans() {
@@ -53,6 +56,39 @@ export default function PreviewPortal() {
     loadPlans();
   }, []);
 
+  useEffect(() => {
+    async function loadCollections() {
+      try {
+        const response = await fetch('/api/dashboard/collections', {
+          cache: 'no-store',
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(
+            typeof data.error === 'string'
+              ? data.error
+              : 'Unable to load collections.'
+          );
+        }
+
+        setCollections(data);
+      } catch (error) {
+        console.error('Unable to load collections:', error);
+        setCollectionsError(
+          error instanceof Error
+            ? error.message
+            : 'Unable to load collections.'
+        );
+      } finally {
+        setCollectionsLoading(false);
+      }
+    }
+
+    loadCollections();
+  }, []);
+
   return (
     <PortalShell
       firstName={userIsLoaded ? firstName : ''}
@@ -60,6 +96,9 @@ export default function PreviewPortal() {
       plans={plans}
       loading={loading}
       errorMessage={errorMessage}
+      collections={collections}
+      collectionsLoading={collectionsLoading}
+      collectionsError={collectionsError}
       accountSlot={<UserButton afterSignOutUrl="/sign-in" />}
     />
   );

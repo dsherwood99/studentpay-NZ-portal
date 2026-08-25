@@ -166,7 +166,8 @@ button {
 .kpi-board,
 .preview-arrears-grid,
 .preview-panel,
-.preview-message {
+.preview-message,
+.collections-card {
   width: min(1440px, calc(100% - 48px));
   margin-left: auto;
   margin-right: auto;
@@ -872,6 +873,119 @@ button {
 }
 
 /* =========================================================
+   COLLECTIONS CHART
+   ========================================================= */
+
+.collections-card {
+  margin-top: 20px;
+  overflow: hidden;
+  border: 1px solid var(--brand-border);
+  border-radius: 20px;
+  background: var(--brand-background);
+  box-shadow: var(--shadow-card);
+}
+
+.collections-header {
+  padding: 22px 24px 8px;
+}
+
+.collections-mtd {
+  margin: 4px 0 0;
+  color: var(--brand-text);
+  font-family: var(--font-heading), Poppins, sans-serif;
+  font-size: clamp(28px, 3vw, 36px);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.collections-mtd-label {
+  margin: 6px 0 0;
+  color: var(--brand-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.collections-header p:last-child {
+  margin: 8px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.collections-comparison-up {
+  color: var(--brand-primary);
+}
+
+.collections-comparison-down {
+  color: var(--status-danger);
+}
+
+.collections-comparison-neutral {
+  color: var(--brand-muted);
+}
+
+.collections-chart {
+  width: 100%;
+  height: 300px;
+  min-width: 0;
+  padding: 0 8px 12px;
+}
+
+.collections-placeholder,
+.collections-empty {
+  margin: 0 24px 20px;
+  color: var(--brand-muted);
+  font-size: 14px;
+}
+
+.collections-placeholder-error {
+  color: var(--status-danger);
+}
+
+.collections-tooltip {
+  min-width: 180px;
+  padding: 10px 12px;
+  border: 1px solid var(--brand-border);
+  border-radius: 12px;
+  background: var(--brand-background);
+  color: var(--brand-text);
+}
+
+.collections-tooltip-day {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--brand-muted);
+}
+
+.collections-tooltip p {
+  margin: 0 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.collections-tooltip p:last-child {
+  margin-bottom: 0;
+}
+
+.collections-tooltip span {
+  color: var(--brand-muted);
+  font-size: 12px;
+}
+
+.collections-tooltip strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.collections-legend-label {
+  color: var(--brand-muted);
+  font-size: 12px;
+}
+
+/* =========================================================
    RESPONSIVE
    ========================================================= */
 
@@ -911,8 +1025,17 @@ button {
   .kpi-board,
   .preview-arrears-grid,
   .preview-panel,
-  .preview-message {
+  .preview-message,
+  .collections-card {
     width: min(100% - 24px, 1440px);
+  }
+
+  .collections-chart {
+    height: 220px;
+  }
+
+  .collections-header {
+    padding: 18px 16px 4px;
   }
 
   .preview-hero h1 {
