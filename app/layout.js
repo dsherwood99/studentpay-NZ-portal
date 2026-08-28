@@ -26,7 +26,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-up">
       <html lang="en-NZ" className={`${inter.variable} ${poppins.variable}`}>
         <body>{children}</body>
       </html>
