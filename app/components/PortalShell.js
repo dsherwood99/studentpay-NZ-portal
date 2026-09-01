@@ -158,6 +158,10 @@ export default function PortalShell({
       return 'authorisation-cancelled';
     }
 
+    if (value.includes('action')) {
+      return 'authorisation-action';
+    }
+
     if (value.includes('authoris') || value.includes('authoriz')) {
       return 'authorisation-complete';
     }
