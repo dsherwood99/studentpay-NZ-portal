@@ -570,6 +570,11 @@ button {
   color: var(--brand-primary);
 }
 
+.authorisation-action {
+  background: var(--status-warning-surface);
+  color: var(--status-warning);
+}
+
 .authorisation-cancelled,
 .authorisation-neutral {
   background: #edf2f0;
