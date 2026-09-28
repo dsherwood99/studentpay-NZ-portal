@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { UserButton, useUser } from '@clerk/nextjs';
+import NewEnrolment from './NewEnrolment';
 import './preview.css';
 
 export default function PreviewPortal() {
@@ -18,6 +19,12 @@ export default function PreviewPortal() {
   const [errorMessage, setErrorMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [providerName, setProviderName] = useState("");
+  const [sandboxPreview, setSandboxPreview] = useState(false);
+  const [enrolmentEnabled, setEnrolmentEnabled] = useState(false);
+  const [enrolmentAgent, setEnrolmentAgent] = useState("");
+  const [needsAgentName, setNeedsAgentName] = useState(false);
+  const [enrolmentOpen, setEnrolmentOpen] = useState(false);
+  const [enrolmentKey, setEnrolmentKey] = useState(0);
 
   useEffect(() => {
     async function loadPlans() {
@@ -39,6 +46,7 @@ export default function PreviewPortal() {
         setPlans(data.plans || []);
         setSelectedPlan(null);
         setProviderName(data.providerName || "");
+        setSandboxPreview(data.environment === "sandbox");
       } catch (error) {
         console.error('Unable to load plans:', error);
         setErrorMessage(
@@ -52,6 +60,26 @@ export default function PreviewPortal() {
     }
 
     loadPlans();
+
+    async function loadEnrolmentAccess() {
+      try {
+        const response = await fetch('/api/enrolments', { cache: 'no-store' });
+        const data = await response.json();
+
+        if (response.ok && data.enabled) {
+          setEnrolmentEnabled(true);
+          setEnrolmentAgent(data.agentName || '');
+          setNeedsAgentName(Boolean(data.needsAgentName));
+          if (data.providerName) {
+            setProviderName(data.providerName);
+          }
+        }
+      } catch {
+        setEnrolmentEnabled(false);
+      }
+    }
+
+    loadEnrolmentAccess();
   }, []);
 
   const summary = useMemo(() => {
@@ -272,6 +300,9 @@ const exportCSV = () => {
           <span className="preview-brand-divider" />
 
           <span className="preview-region">New Zealand</span>
+          {sandboxPreview ? (
+            <span className="preview-badge">Sandbox</span>
+          ) : null}
 
           
         </div>
@@ -297,7 +328,49 @@ const exportCSV = () => {
       {providerName ? ` from ${providerName}` : ''}
     </h1>
   </div>
+  {enrolmentEnabled && !enrolmentOpen ? (
+    <button
+      type="button"
+      className="primary-button"
+      onClick={() => setEnrolmentOpen(true)}
+    >
+      New enrolment
+    </button>
+  ) : null}
 </section>
+
+      {enrolmentOpen ? (
+        <NewEnrolment
+          key={enrolmentKey}
+          providerName={providerName}
+          agentName={enrolmentAgent}
+          needsAgentName={needsAgentName}
+          onCancel={() => {
+            setEnrolmentOpen(false);
+            setLoading(true);
+            setErrorMessage('');
+            fetch('/api/plans', { cache: 'no-store' })
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.success) {
+                  setPlans(data.plans || []);
+                }
+              })
+              .catch(() => undefined)
+              .finally(() => setLoading(false));
+          }}
+          onCreated={(enrolment, action) => {
+            if (action?.another) {
+              setEnrolmentKey((value) => value + 1);
+              return;
+            }
+
+            if (enrolment?.plan_number) {
+              setSearchTerm(enrolment.plan_number);
+            }
+          }}
+        />
+      ) : null}
 
       {loading && (
         <div className="preview-message">Loading Salesforce plans…</div>
@@ -309,11 +382,11 @@ const exportCSV = () => {
         </div>
       )}
 
-      {!loading && !errorMessage && plans.length === 0 && (
+      {!enrolmentOpen && !loading && !errorMessage && plans.length === 0 && (
         <div className="preview-message">No plans found.</div>
       )}
 
-      {!loading && !errorMessage && plans.length > 0 && (
+      {!enrolmentOpen && !loading && !errorMessage && plans.length > 0 && (
         <>
           <section className="summary-grid preview-summary-grid">
             <article className="summary-card">
