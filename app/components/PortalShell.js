@@ -3,6 +3,8 @@
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import CollectionsChart from './CollectionsChart';
+import { buildPortfolioCsv } from '../../lib/portfolio-export.js';
+import { buildPortfolioSummary } from '../../lib/portfolio-summary.js';
 import '../preview/preview.css';
 
 function SearchIcon() {
@@ -42,62 +44,7 @@ export default function PortalShell({
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const summary = useMemo(() => {
-    const activePlans = plans.length;
-
-    const totalAmount = plans.reduce(
-      (sum, plan) => sum + Number(plan.amount || 0),
-      0
-    );
-
-    const totalCollected = plans.reduce(
-      (sum, plan) => sum + Number(plan.collected || 0),
-      0
-    );
-
-    const totalRemaining = plans.reduce(
-      (sum, plan) => sum + Number(plan.remaining || 0),
-      0
-    );
-
-    const currentPlans = plans.filter(
-      (plan) => plan.status === 'No Arrears'
-    ).length;
-
-    const arrears1To15 = plans.filter(
-      (plan) => plan.status === '1 - 15 Days'
-    ).length;
-
-    const arrears16To30 = plans.filter(
-      (plan) => plan.status === '16 - 30 Days'
-    ).length;
-
-    const arrears31To60 = plans.filter(
-      (plan) => plan.status === '31 - 60 Days'
-    ).length;
-
-    const arrears61To90 = plans.filter(
-      (plan) => plan.status === '61 - 90 Days'
-    ).length;
-
-    const arrears90Plus = plans.filter(
-      (plan) => plan.status === '90+ Days'
-    ).length;
-
-    const arrears61Plus = arrears61To90 + arrears90Plus;
-
-    return {
-      activePlans,
-      totalAmount,
-      totalCollected,
-      totalRemaining,
-      currentPlans,
-      arrears1To15,
-      arrears16To30,
-      arrears31To60,
-      arrears61Plus,
-    };
-  }, [plans]);
+  const summary = useMemo(() => buildPortfolioSummary(plans), [plans]);
 
   const formatCurrency = (value) =>
     new Intl.NumberFormat('en-NZ', {
@@ -206,43 +153,7 @@ export default function PortalShell({
       return;
     }
 
-    const columns = [
-      { heading: 'Plan Number', value: (plan) => plan.plan },
-      { heading: 'Student', value: (plan) => plan.student },
-      { heading: 'Stage', value: (plan) => plan.stage },
-      {
-        heading: 'Authorisation Status',
-        value: (plan) => plan.authorisationStatus,
-      },
-      { heading: 'Agreement Date', value: (plan) => plan.agreementDate },
-      { heading: 'Status', value: (plan) => plan.status },
-      { heading: 'Plan Amount', value: (plan) => plan.amount },
-      { heading: 'Collected to Date', value: (plan) => plan.collected },
-      { heading: 'Remaining Balance', value: (plan) => plan.remaining },
-      { heading: 'Overdue Balance', value: (plan) => plan.overdue },
-      { heading: 'Days in Arrears', value: (plan) => plan.daysInArrears },
-      { heading: 'Course', value: (plan) => plan.course },
-      { heading: 'Payment Amount', value: (plan) => plan.paymentAmount },
-      { heading: 'Payment Frequency', value: (plan) => plan.frequency },
-    ];
-
-    const escapeCSVValue = (value) => {
-      const text = String(value ?? '');
-
-      return `"${text.replaceAll('"', '""')}"`;
-    };
-
-    const headerRow = columns
-      .map((column) => escapeCSVValue(column.heading))
-      .join(',');
-
-    const dataRows = recordsToExport.map((plan) =>
-      columns
-        .map((column) => escapeCSVValue(column.value(plan)))
-        .join(',')
-    );
-
-    const csvContent = [headerRow, ...dataRows].join('\r\n');
+    const csvContent = buildPortfolioCsv(recordsToExport);
 
     const blob = new Blob([csvContent], {
       type: 'text/csv;charset=utf-8;',
