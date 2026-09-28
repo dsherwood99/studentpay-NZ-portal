@@ -68,6 +68,31 @@ test("enrolment stays off for a mismatched environment and for a non-canary user
     false
   );
   assert.equal(portalEnrolmentAllowed(production).enabled, true);
+  assert.equal(
+    portalEnrolmentAllowed({
+      ...production,
+      userId: "user_other_provider",
+      mode: "all_providers"
+    }).enabled,
+    true
+  );
+  assert.equal(
+    portalEnrolmentAllowed({
+      ...production,
+      userId: "user_other_provider",
+      mode: "all_providers",
+      flag: "false"
+    }).enabled,
+    false
+  );
+  assert.equal(
+    portalEnrolmentAllowed({
+      ...production,
+      userId: "user_other_provider",
+      mode: "canary"
+    }).enabled,
+    false
+  );
   assert.equal(portalEnrolmentAllowed({ ...sandbox, studentPayEnv: "" }).enabled, false);
   assert.equal(
     portalEnrolmentAllowed({

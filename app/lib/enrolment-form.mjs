@@ -1,4 +1,7 @@
+import { moneyToCents } from "./enrolment-plan.mjs";
+
 const EARLIEST_DOB = "1900-01-01";
+const UPFRONT_MINIMUM_CENTS = 200;
 
 export function localIsoDate(date = new Date()) {
   const year = date.getFullYear();
@@ -27,6 +30,85 @@ export function ageLabel(iso, todayIso = localIsoDate()) {
   }
 
   return age === 1 ? "1 year" : `${age} years`;
+}
+
+/**
+ * Completed years on a date-only calendar. The 18th birthday counts as 18.
+ * The day before does not. Callers pass the New Zealand calendar date.
+ */
+export function completedAge(iso, todayIso) {
+  if (!isRealIsoDate(String(iso || "")) || !isRealIsoDate(String(todayIso || ""))) {
+    return null;
+  }
+
+  if (iso > todayIso || iso < EARLIEST_DOB) {
+    return null;
+  }
+
+  let age = Number(todayIso.slice(0, 4)) - Number(iso.slice(0, 4));
+
+  if (todayIso.slice(5) < iso.slice(5)) {
+    age -= 1;
+  }
+
+  if (age < 0 || age > 130) {
+    return null;
+  }
+
+  return age;
+}
+
+export function nzIsoDate(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-NZ", {
+    timeZone: "Pacific/Auckland",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(date);
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+
+  if (!year || !month || !day) {
+    return localIsoDate(date);
+  }
+
+  return `${year}-${month}-${day}`;
+}
+
+export function studentMustHaveAnotherPayer(iso, todayIso) {
+  const age = completedAge(iso, todayIso);
+  return age !== null && age < 18;
+}
+
+export function upfrontPaymentError(value, planAmount) {
+  const raw = String(value ?? "").trim().replace(/[$,\s]/g, "");
+
+  if (!raw) {
+    return "";
+  }
+
+  const parsed = moneyToCents(raw);
+
+  if (!parsed.ok || parsed.cents < 0) {
+    return "Enter an upfront payment of zero or more.";
+  }
+
+  if (parsed.cents > 0 && parsed.cents < UPFRONT_MINIMUM_CENTS) {
+    return "Upfront payment must be $0 or at least $2.00.";
+  }
+
+  const amount = moneyToCents(String(planAmount ?? "").trim().replace(/[$,\s]/g, ""));
+
+  if (amount.ok && parsed.cents > amount.cents) {
+    return "Upfront payment cannot be greater than the plan amount.";
+  }
+
+  if (amount.ok && amount.cents > 0 && parsed.cents === amount.cents) {
+    return "Upfront payment must be less than the plan amount.";
+  }
+
+  return "";
 }
 
 function isRealIsoDate(value) {
@@ -136,7 +218,7 @@ function addressErrors(form, prefix, label, todayIso) {
   return errors;
 }
 
-export function validateEnrolmentDraft(form, todayIso = localIsoDate()) {
+export function validateEnrolmentDraft(form, todayIso = nzIsoDate()) {
   const errors = [];
   const studentDob = dateOfBirthError(form.dateOfBirth, "Date of birth", todayIso);
 
@@ -150,9 +232,21 @@ export function validateEnrolmentDraft(form, todayIso = localIsoDate()) {
     errors.push(studentMobile);
   }
 
+  const upfront = upfrontPaymentError(form.upfront, form.amount);
+
+  if (upfront) {
+    errors.push(upfront);
+  }
+
   errors.push(...addressErrors(form, "student", "Student", todayIso));
 
-  if (!form.studentIsPayer) {
+  const minor = studentMustHaveAnotherPayer(form.dateOfBirth, todayIso);
+
+  if (minor && form.studentIsPayer) {
+    errors.push("Students under 18 must have another person nominated as the payer.");
+  }
+
+  if (!form.studentIsPayer || minor) {
     const payerDob = dateOfBirthError(
       form.payerDateOfBirth,
       "Payer date of birth",

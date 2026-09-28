@@ -5,7 +5,9 @@ import { useMemo, useState } from "react";
 import {
   ageLabel,
   enrolmentRequestBody,
-  localIsoDate,
+  nzIsoDate,
+  studentMustHaveAnotherPayer,
+  upfrontPaymentError,
   validateEnrolmentDraft
 } from "../lib/enrolment-form.mjs";
 import {
@@ -15,8 +17,10 @@ import {
 } from "../lib/enrolment-plan.mjs";
 
 const MOBILE_HINT = "Example: 021 123 4567 or +64 21 123 4567";
+const UPFRONT_HINT =
+  "Enter $0 if there is no upfront payment. Otherwise the minimum is $2.00.";
 
-function Field({ label, className = "", hint, hintId, children }) {
+function Field({ label, className = "", hint, hintId, error, errorId, children }) {
   return (
     <label className={`enrolment-field${className ? ` ${className}` : ""}`}>
       <span className="enrolment-label">{label}</span>
@@ -25,6 +29,11 @@ function Field({ label, className = "", hint, hintId, children }) {
         {hint ? (
           <span className="enrolment-hint" id={hintId}>
             {hint}
+          </span>
+        ) : null}
+        {error ? (
+          <span className="enrolment-inline-error" id={errorId} role="alert">
+            {error}
           </span>
         ) : null}
       </span>
@@ -128,7 +137,7 @@ export default function NewEnrolment({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
-  const today = localIsoDate();
+  const today = nzIsoDate();
 
   const summary = useMemo(
     () =>
@@ -144,7 +153,18 @@ export default function NewEnrolment({
   );
 
   function update(field, value) {
-    setForm((current) => ({ ...current, [field]: value }));
+    setForm((current) => {
+      const next = { ...current, [field]: value };
+
+      if (
+        field === "dateOfBirth" &&
+        studentMustHaveAnotherPayer(value, today)
+      ) {
+        next.studentIsPayer = false;
+      }
+
+      return next;
+    });
   }
 
   async function submit(event) {
@@ -154,7 +174,10 @@ export default function NewEnrolment({
       return;
     }
 
-    const problems = validateEnrolmentDraft(form, today);
+    const draft = studentMustHaveAnotherPayer(form.dateOfBirth, today)
+      ? { ...form, studentIsPayer: false }
+      : form;
+    const problems = validateEnrolmentDraft(draft, today);
 
     if (problems.length > 0) {
       setError(problems[0]);
@@ -169,7 +192,7 @@ export default function NewEnrolment({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
-          enrolmentRequestBody(form, { idempotencyKey, needsAgentName })
+          enrolmentRequestBody(draft, { idempotencyKey, needsAgentName })
         )
       });
       const payload = await response.json().catch(() => ({}));
@@ -242,6 +265,9 @@ export default function NewEnrolment({
 
   const studentAge = ageLabel(form.dateOfBirth, today);
   const payerAge = ageLabel(form.payerDateOfBirth, today);
+  const minor = studentMustHaveAnotherPayer(form.dateOfBirth, today);
+  const studentIsPayer = form.studentIsPayer && !minor;
+  const upfrontError = upfrontPaymentError(form.upfront, form.amount);
 
   return (
     <section className="preview-panel enrolment-panel">
@@ -343,10 +369,20 @@ export default function NewEnrolment({
                 onChange={(event) => update("amount", event.target.value)}
               />
             </Field>
-            <Field label="Upfront payment">
+            <Field
+              label="Upfront payment"
+              hint={UPFRONT_HINT}
+              hintId="upfront-hint"
+              error={upfrontError}
+              errorId="upfront-error"
+            >
               <input
                 inputMode="decimal"
                 placeholder="0.00"
+                aria-describedby={
+                  upfrontError ? "upfront-hint upfront-error" : "upfront-hint"
+                }
+                aria-invalid={upfrontError ? "true" : undefined}
                 value={form.upfront}
                 onChange={(event) => update("upfront", event.target.value)}
               />
@@ -395,22 +431,28 @@ export default function NewEnrolment({
               <input
                 type="radio"
                 name="payer"
-                checked={form.studentIsPayer}
+                checked={studentIsPayer}
+                disabled={minor}
                 onChange={() => update("studentIsPayer", true)}
               />
-              Student is the payer
+              <span>Student is the payer</span>
             </label>
+            {minor ? (
+              <p className="enrolment-note">
+                Students under 18 must have another person nominated as the payer.
+              </p>
+            ) : null}
             <label>
               <input
                 type="radio"
                 name="payer"
-                checked={!form.studentIsPayer}
+                checked={!studentIsPayer}
                 onChange={() => update("studentIsPayer", false)}
               />
-              Someone else will make the payments
+              <span>Someone else will make the payments</span>
             </label>
           </div>
-          {form.studentIsPayer ? (
+          {studentIsPayer ? (
             <p className="enrolment-note">
               The payer will use the student name, date of birth, email, mobile,
               and residential address.
