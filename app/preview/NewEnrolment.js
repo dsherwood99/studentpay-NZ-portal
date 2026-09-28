@@ -14,6 +14,24 @@ import {
   summarisePlan
 } from "../lib/enrolment-plan.mjs";
 
+const MOBILE_HINT = "Example: 021 123 4567 or +64 21 123 4567";
+
+function Field({ label, className = "", hint, hintId, children }) {
+  return (
+    <label className={`enrolment-field${className ? ` ${className}` : ""}`}>
+      <span className="enrolment-label">{label}</span>
+      <span className="enrolment-control">
+        {children}
+        {hint ? (
+          <span className="enrolment-hint" id={hintId}>
+            {hint}
+          </span>
+        ) : null}
+      </span>
+    </label>
+  );
+}
+
 const EMPTY = {
   firstName: "",
   lastName: "",
@@ -53,35 +71,31 @@ function plainMoney(value) {
 function AddressFields({ prefix, form, update }) {
   return (
     <>
-      <label className="enrolment-span">
-        Street address
+      <Field className="enrolment-span" label="Street address">
         <input
           required
           autoComplete="street-address"
           value={form[`${prefix}Street`]}
           onChange={(event) => update(`${prefix}Street`, event.target.value)}
         />
-      </label>
-      <label>
-        Suburb / city
+      </Field>
+      <Field label="Suburb / city">
         <input
           required
           autoComplete="address-level2"
           value={form[`${prefix}Suburb`]}
           onChange={(event) => update(`${prefix}Suburb`, event.target.value)}
         />
-      </label>
-      <label>
-        Region
+      </Field>
+      <Field label="Region">
         <input
           required
           autoComplete="address-level1"
           value={form[`${prefix}Region`]}
           onChange={(event) => update(`${prefix}Region`, event.target.value)}
         />
-      </label>
-      <label>
-        Postcode
+      </Field>
+      <Field label="Postcode">
         <input
           required
           inputMode="numeric"
@@ -89,16 +103,15 @@ function AddressFields({ prefix, form, update }) {
           value={form[`${prefix}Postcode`]}
           onChange={(event) => update(`${prefix}Postcode`, event.target.value)}
         />
-      </label>
-      <label>
-        Country
+      </Field>
+      <Field label="Country">
         <input
           required
           autoComplete="country-name"
           value={form[`${prefix}Country`]}
           onChange={(event) => update(`${prefix}Country`, event.target.value)}
         />
-      </label>
+      </Field>
     </>
   );
 }
@@ -250,26 +263,23 @@ export default function NewEnrolment({
         <fieldset className="enrolment-section">
           <legend>Student details</legend>
           <div className="enrolment-grid">
-            <label>
-              First name
+            <Field label="First name">
               <input
                 required
                 autoComplete="given-name"
                 value={form.firstName}
                 onChange={(event) => update("firstName", event.target.value)}
               />
-            </label>
-            <label>
-              Last name
+            </Field>
+            <Field label="Last name">
               <input
                 required
                 autoComplete="family-name"
                 value={form.lastName}
                 onChange={(event) => update("lastName", event.target.value)}
               />
-            </label>
-            <label>
-              Date of birth
+            </Field>
+            <Field label="Date of birth">
               <input
                 required
                 type="date"
@@ -279,21 +289,20 @@ export default function NewEnrolment({
                 onChange={(event) => update("dateOfBirth", event.target.value)}
               />
               {studentAge ? <span className="enrolment-age">{studentAge}</span> : null}
-            </label>
-            <label>
-              Mobile
+            </Field>
+            <Field label="Mobile" hint={MOBILE_HINT} hintId="student-mobile-hint">
               <input
                 required
                 type="tel"
                 inputMode="tel"
                 autoComplete="tel"
-                placeholder="021…"
+                placeholder="021 123 4567"
+                aria-describedby="student-mobile-hint"
                 value={form.mobile}
                 onChange={(event) => update("mobile", event.target.value)}
               />
-            </label>
-            <label className="enrolment-span">
-              Email
+            </Field>
+            <Field className="enrolment-span" label="Email">
               <input
                 required
                 type="email"
@@ -301,7 +310,7 @@ export default function NewEnrolment({
                 value={form.email}
                 onChange={(event) => update("email", event.target.value)}
               />
-            </label>
+            </Field>
           </div>
         </fieldset>
 
@@ -314,39 +323,35 @@ export default function NewEnrolment({
 
         <fieldset className="enrolment-section">
           <legend>Course</legend>
-          <label>
-            Course
+          <Field label="Course">
             <input
               required
               value={form.courseName}
               onChange={(event) => update("courseName", event.target.value)}
             />
-          </label>
+          </Field>
         </fieldset>
 
         <fieldset className="enrolment-section">
           <legend>Payment plan</legend>
           <div className="enrolment-grid">
-            <label>
-              Plan amount
+            <Field label="Plan amount">
               <input
                 required
                 inputMode="decimal"
                 value={form.amount}
                 onChange={(event) => update("amount", event.target.value)}
               />
-            </label>
-            <label>
-              Upfront payment
+            </Field>
+            <Field label="Upfront payment">
               <input
                 inputMode="decimal"
                 placeholder="0.00"
                 value={form.upfront}
                 onChange={(event) => update("upfront", event.target.value)}
               />
-            </label>
-            <label>
-              First payment date
+            </Field>
+            <Field label="First payment date">
               <input
                 required
                 type="date"
@@ -355,9 +360,8 @@ export default function NewEnrolment({
                   update("firstPaymentDate", event.target.value)
                 }
               />
-            </label>
-            <label>
-              Payment frequency
+            </Field>
+            <Field label="Payment frequency">
               <select
                 value={form.frequency}
                 onChange={(event) => update("frequency", event.target.value)}
@@ -368,9 +372,8 @@ export default function NewEnrolment({
                   </option>
                 ))}
               </select>
-            </label>
-            <label>
-              Term
+            </Field>
+            <Field label="Term">
               <select
                 value={form.termMonths}
                 onChange={(event) => update("termMonths", event.target.value)}
@@ -381,7 +384,7 @@ export default function NewEnrolment({
                   </option>
                 ))}
               </select>
-            </label>
+            </Field>
           </div>
         </fieldset>
 
@@ -416,8 +419,7 @@ export default function NewEnrolment({
             <>
               <h3 className="enrolment-subhead">Payer details</h3>
               <div className="enrolment-grid">
-                <label>
-                  First name
+                <Field label="First name">
                   <input
                     required
                     value={form.payerFirstName}
@@ -425,9 +427,8 @@ export default function NewEnrolment({
                       update("payerFirstName", event.target.value)
                     }
                   />
-                </label>
-                <label>
-                  Last name
+                </Field>
+                <Field label="Last name">
                   <input
                     required
                     value={form.payerLastName}
@@ -435,9 +436,8 @@ export default function NewEnrolment({
                       update("payerLastName", event.target.value)
                     }
                   />
-                </label>
-                <label>
-                  Date of birth
+                </Field>
+                <Field label="Date of birth">
                   <input
                     required
                     type="date"
@@ -449,27 +449,28 @@ export default function NewEnrolment({
                     }
                   />
                   {payerAge ? <span className="enrolment-age">{payerAge}</span> : null}
-                </label>
-                <label>
-                  Mobile
+                </Field>
+                <Field label="Mobile" hint={MOBILE_HINT} hintId="payer-mobile-hint">
                   <input
                     required
                     type="tel"
+                    inputMode="tel"
+                    placeholder="021 123 4567"
+                    aria-describedby="payer-mobile-hint"
                     value={form.payerMobile}
                     onChange={(event) =>
                       update("payerMobile", event.target.value)
                     }
                   />
-                </label>
-                <label className="enrolment-span">
-                  Email
+                </Field>
+                <Field className="enrolment-span" label="Email">
                   <input
                     required
                     type="email"
                     value={form.payerEmail}
                     onChange={(event) => update("payerEmail", event.target.value)}
                   />
-                </label>
+                </Field>
               </div>
               <h3 className="enrolment-subhead">Payer address</h3>
               <div className="enrolment-grid">
@@ -526,14 +527,13 @@ export default function NewEnrolment({
         <fieldset className="enrolment-section">
           <legend>Verbal consent</legend>
           {needsAgentName ? (
-            <label>
-              Your name
+            <Field label="Your name">
               <input
                 required
                 value={form.agentName}
                 onChange={(event) => update("agentName", event.target.value)}
               />
-            </label>
+            </Field>
           ) : (
             <p className="enrolment-note">
               {`This enrolment will be recorded for ${agentName}${providerName ? ` at ${providerName}` : ""}.`}
