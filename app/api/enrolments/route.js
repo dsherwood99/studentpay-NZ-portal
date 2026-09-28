@@ -11,7 +11,8 @@ function availability(userId = "") {
     apiBaseUrl: process.env.STUDENTPAY_API_BASE_URL || "",
     flag: process.env.PROVIDER_ENROLMENT_ENABLED || "",
     userId,
-    canaryUserIds: process.env.PROVIDER_ENROLMENT_CANARY_USER_IDS || ""
+    canaryUserIds: process.env.PROVIDER_ENROLMENT_CANARY_USER_IDS || "",
+    mode: process.env.PROVIDER_ENROLMENT_MODE || ""
   });
 }
 

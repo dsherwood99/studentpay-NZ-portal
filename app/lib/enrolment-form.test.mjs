@@ -4,8 +4,12 @@ import test from "node:test";
 
 import {
   ageLabel,
+  completedAge,
   enrolmentRequestBody,
   normaliseNzMobile,
+  nzIsoDate,
+  studentMustHaveAnotherPayer,
+  upfrontPaymentError,
   validateEnrolmentDraft
 } from "./enrolment-form.mjs";
 import { enrolmentBodyForApi } from "./enrolment-guard.mjs";
@@ -123,6 +127,74 @@ test("common New Zealand mobile formats normalise and invalid numbers are reject
   assert.equal(forwarded.student.mobile, "+64210001111");
 });
 
+test("a student under 18 cannot be the payer on the New Zealand enrolment date", () => {
+  const beforeBirthday = new Date("2026-09-28T10:00:00.000Z");
+  const onBirthday = new Date("2026-09-28T14:00:00.000Z");
+
+  assert.equal(nzIsoDate(beforeBirthday), "2026-09-28");
+  assert.equal(nzIsoDate(onBirthday), "2026-09-29");
+  assert.equal(beforeBirthday.toISOString().slice(0, 10), onBirthday.toISOString().slice(0, 10));
+  assert.equal(completedAge("2008-09-29", "2026-09-29"), 18);
+  assert.equal(completedAge("2008-09-30", "2026-09-29"), 17);
+  assert.equal(completedAge("2001-04-12", "2026-09-29"), 25);
+  assert.equal(studentMustHaveAnotherPayer("2008-09-29", "2026-09-29"), false);
+  assert.equal(studentMustHaveAnotherPayer("2008-09-30", "2026-09-29"), true);
+  assert.equal(studentMustHaveAnotherPayer("", "2026-09-29"), false);
+
+  assert.equal(
+    validateEnrolmentDraft(
+      form({ dateOfBirth: "2008-09-29", studentIsPayer: true }),
+      "2026-09-29"
+    ).join(" "),
+    ""
+  );
+  assert.match(
+    validateEnrolmentDraft(
+      form({ dateOfBirth: "2008-09-30", studentIsPayer: true }),
+      "2026-09-29"
+    ).join(" "),
+    /under 18/
+  );
+  assert.doesNotMatch(
+    validateEnrolmentDraft(
+      form({
+        dateOfBirth: "2009-09-29",
+        studentIsPayer: false,
+        payerFirstName: "Mere",
+        payerLastName: "Ngata",
+        payerDateOfBirth: "1978-09-03",
+        payerEmail: "mere.ngata@example.test",
+        payerMobile: "0215550100",
+        payerStreet: "4 Harbour View",
+        payerSuburb: "Petone",
+        payerRegion: "Wellington",
+        payerPostcode: "5012"
+      }),
+      "2026-09-29"
+    ).join(" "),
+    /under 18/
+  );
+});
+
+test("upfront payment accepts zero or at least two dollars", () => {
+  for (const value of ["", "0", "0.00", "2", "2.00", "50"]) {
+    assert.equal(upfrontPaymentError(value, "5400.00"), "");
+  }
+
+  for (const value of ["0.50", "1", "1.00", "1.99"]) {
+    assert.equal(
+      upfrontPaymentError(value, "5400.00"),
+      "Upfront payment must be $0 or at least $2.00."
+    );
+  }
+
+  assert.match(upfrontPaymentError("5400.01", "5400.00"), /greater than the plan amount/);
+  assert.match(
+    validateEnrolmentDraft(form({ upfront: "1.50" }), TODAY).join(" "),
+    /at least \$2\.00/
+  );
+});
+
 test("consent sits beside its text and desktop fields are compact", () => {
   const css = readFileSync(new URL("../preview/preview.css", import.meta.url), "utf8");
   const consent = css.match(
@@ -135,6 +207,8 @@ test("consent sits beside its text and desktop fields are compact", () => {
 
   assert.match(consent, /display:\s*flex/);
   assert.match(consent, /flex-direction:\s*row/);
+  assert.match(consent, /font-size:\s*13px/);
+  assert.match(css, /\.enrolment-section legend \{[^}]*border-radius:\s*999px/);
   assert.match(field, /grid-template-columns:\s*132px/);
   assert.match(mobile, /\.enrolment-field \{[^}]*grid-template-columns:\s*1fr/);
   assert.match(mobile, /min-height:\s*44px/);

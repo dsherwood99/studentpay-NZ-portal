@@ -1,15 +1,17 @@
 /**
  * Sandbox shows New Enrolment when the API is a sandbox host and the flag
- * is not explicitly off. Production shows it only when the flag is on, the
- * API is the production host, and the signed-in Clerk user id is allowlisted.
- * An empty allowlist admits nobody. JotForm is untouched.
+ * is not explicitly off. Production requires the master flag, the production
+ * API host, and either all valid providers or the Clerk canary allowlist.
+ * Unset mode stays on the allowlist. An empty allowlist admits nobody.
+ * JotForm is untouched.
  */
 export function portalEnrolmentAllowed({
   studentPayEnv = "",
   apiBaseUrl = "",
   flag = "",
   userId = "",
-  canaryUserIds = ""
+  canaryUserIds = "",
+  mode = ""
 } = {}) {
   const env = String(studentPayEnv || "").trim().toLowerCase();
   const rawFlag = String(flag || "").trim().toLowerCase();
@@ -38,6 +40,12 @@ export function portalEnrolmentAllowed({
 
     if (!productionApi || sandboxApi) {
       return { enabled: false, reason: "api" };
+    }
+
+    const rollout = String(mode || "").trim().toLowerCase();
+
+    if (rollout === "all_providers") {
+      return { enabled: true, reason: "all_providers" };
     }
 
     const allowed = new Set(
