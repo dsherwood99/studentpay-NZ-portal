@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
   ageLabel,
   enrolmentRequestBody,
+  normaliseNzMobile,
   validateEnrolmentDraft
 } from "./enrolment-form.mjs";
 import { enrolmentBodyForApi } from "./enrolment-guard.mjs";
@@ -66,6 +68,76 @@ test("student date of birth cannot be in the future or missing an address", () =
     validateEnrolmentDraft(form({ studentPostcode: "601" }), TODAY).join(" "),
     /4-digit/
   );
+});
+
+test("common New Zealand mobile formats normalise and invalid numbers are rejected", () => {
+  const accepted = [
+    "0210001111",
+    "021 000 1111",
+    "+64 21 000 1111",
+    "64210001111",
+    "+64 021 000 1111"
+  ];
+
+  for (const value of accepted) {
+    assert.deepEqual(normaliseNzMobile(value), {
+      ok: true,
+      value: "+64210001111",
+      error: ""
+    });
+  }
+
+  assert.equal(normaliseNzMobile("12345").ok, false);
+  assert.equal(normaliseNzMobile("09 123 4567").ok, false);
+  assert.equal(normaliseNzMobile("").ok, false);
+  assert.match(
+    validateEnrolmentDraft(form({ mobile: "12345" }), TODAY).join(" "),
+    /021 123 4567 or \+64 21 123 4567/
+  );
+  assert.match(
+    validateEnrolmentDraft(
+      form({
+        studentIsPayer: false,
+        payerFirstName: "Mere",
+        payerLastName: "Ngata",
+        payerDateOfBirth: "1978-09-03",
+        payerEmail: "mere.ngata@example.test",
+        payerMobile: "12345",
+        payerStreet: "4 Harbour View",
+        payerSuburb: "Petone",
+        payerRegion: "Wellington",
+        payerPostcode: "5012"
+      }),
+      TODAY
+    ).join(" "),
+    /payer mobile/i
+  );
+
+  const forwarded = enrolmentRequestBody(
+    form({ mobile: "+64 21 000 1111", payerMobile: "" }),
+    {
+      idempotencyKey: "11111111-1111-4111-8111-111111111111",
+      needsAgentName: false
+    }
+  );
+  assert.equal(forwarded.student.mobile, "+64210001111");
+});
+
+test("consent sits beside its text and desktop fields are compact", () => {
+  const css = readFileSync(new URL("../preview/preview.css", import.meta.url), "utf8");
+  const consent = css.match(
+    /\.enrolment-form label\.enrolment-consent \{([^}]+)\}/
+  )?.[1];
+  const field = css.match(/\.enrolment-field \{([^}]+)\}/)?.[1];
+  const mobile = css.match(
+    /@media \(max-width: 900px\) \{([\s\S]*?)\n\}/
+  )?.[1];
+
+  assert.match(consent, /display:\s*flex/);
+  assert.match(consent, /flex-direction:\s*row/);
+  assert.match(field, /grid-template-columns:\s*132px/);
+  assert.match(mobile, /\.enrolment-field \{[^}]*grid-template-columns:\s*1fr/);
+  assert.match(mobile, /min-height:\s*44px/);
 });
 
 test("student as payer does not require or send duplicate payer fields", () => {

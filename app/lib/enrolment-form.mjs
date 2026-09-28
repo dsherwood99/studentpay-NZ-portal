@@ -57,6 +57,49 @@ function dateOfBirthError(value, label, todayIso) {
   return "";
 }
 
+/**
+ * Matches the API enrolment normaliser.
+ * Accepts 021…, spaced numbers, +64 21…, 64 21…, and +64 021….
+ * Stores +64 followed by the national number without the trunk zero.
+ */
+export function normaliseNzMobile(value) {
+  const raw = String(value || "").trim();
+
+  if (!raw) {
+    return { ok: false, value: "", error: "required" };
+  }
+
+  let digits = raw.replace(/\D/g, "");
+
+  if (digits.startsWith("64")) {
+    digits = digits.slice(2);
+  }
+
+  if (!digits.startsWith("0")) {
+    digits = `0${digits}`;
+  }
+
+  if (!/^02\d{7,9}$/.test(digits)) {
+    return { ok: false, value: raw, error: "invalid" };
+  }
+
+  return { ok: true, value: `+64${digits.slice(1)}`, error: "" };
+}
+
+function mobileError(value, subject) {
+  const mobile = normaliseNzMobile(value);
+
+  if (mobile.ok) {
+    return "";
+  }
+
+  if (mobile.error === "required") {
+    return `${subject} is required.`;
+  }
+
+  return `Enter a New Zealand ${subject.toLowerCase()}, for example 021 123 4567 or +64 21 123 4567.`;
+}
+
 function addressErrors(form, prefix, label, todayIso) {
   void todayIso;
   const street = String(form[`${prefix}Street`] || "").trim();
@@ -101,6 +144,12 @@ export function validateEnrolmentDraft(form, todayIso = localIsoDate()) {
     errors.push(studentDob);
   }
 
+  const studentMobile = mobileError(form.mobile, "Student mobile");
+
+  if (studentMobile) {
+    errors.push(studentMobile);
+  }
+
   errors.push(...addressErrors(form, "student", "Student", todayIso));
 
   if (!form.studentIsPayer) {
@@ -115,9 +164,20 @@ export function validateEnrolmentDraft(form, todayIso = localIsoDate()) {
     }
 
     errors.push(...addressErrors(form, "payer", "Payer", todayIso));
+
+    const payerMobile = mobileError(form.payerMobile, "Payer mobile");
+
+    if (payerMobile) {
+      errors.push(payerMobile);
+    }
   }
 
   return errors;
+}
+
+function mobileForApi(value) {
+  const mobile = normaliseNzMobile(value);
+  return mobile.ok ? mobile.value : value;
 }
 
 function addressPayload(form, prefix) {
@@ -141,7 +201,7 @@ export function enrolmentRequestBody(form, { idempotencyKey, needsAgentName }) {
       last_name: form.lastName,
       date_of_birth: form.dateOfBirth,
       email: form.email,
-      mobile: form.mobile,
+      mobile: mobileForApi(form.mobile),
       address: addressPayload(form, "student")
     },
     course_name: form.courseName,
@@ -160,7 +220,7 @@ export function enrolmentRequestBody(form, { idempotencyKey, needsAgentName }) {
           last_name: form.payerLastName,
           date_of_birth: form.payerDateOfBirth,
           email: form.payerEmail,
-          mobile: form.payerMobile,
+          mobile: mobileForApi(form.payerMobile),
           address: addressPayload(form, "payer")
         },
     verbal_consent: form.verbalConsent

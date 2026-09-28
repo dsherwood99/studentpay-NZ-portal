@@ -1126,15 +1126,15 @@ button {
 
 .enrolment-form {
   display: grid;
-  gap: 16px;
-  padding: 0 22px 22px;
+  gap: 10px;
+  padding: 0 18px 16px;
 }
 
 .enrolment-section {
   margin: 0;
-  padding: 16px;
+  padding: 8px 12px 10px;
   border: 1px solid var(--brand-border);
-  border-radius: 16px;
+  border-radius: 12px;
   background: var(--brand-surface);
 }
 
@@ -1148,28 +1148,47 @@ button {
 .enrolment-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px 14px;
+  gap: 8px 16px;
 }
 
 .enrolment-span {
   grid-column: 1 / -1;
 }
 
-.enrolment-form label {
+.enrolment-field {
   display: grid;
-  gap: 6px;
+  grid-template-columns: 132px minmax(0, 1fr);
+  align-items: center;
+  gap: 2px 10px;
   color: var(--brand-muted);
   font-size: 13px;
   font-weight: 600;
 }
 
+.enrolment-label {
+  line-height: 1.2;
+}
+
+.enrolment-control {
+  min-width: 0;
+}
+
+.enrolment-hint {
+  display: block;
+  margin-top: 4px;
+  color: var(--brand-muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
 .enrolment-form input,
 .enrolment-form select {
-  min-height: 42px;
+  min-height: 34px;
   width: 100%;
-  padding: 8px 12px;
+  padding: 4px 10px;
   border: 1px solid var(--brand-border);
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--brand-background);
   color: var(--brand-text);
 }
@@ -1186,8 +1205,8 @@ button {
 }
 
 .enrolment-summary {
-  padding: 18px 20px;
-  border-radius: 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
   background: var(--brand-primary);
   color: white;
 }
@@ -1230,35 +1249,39 @@ button {
 }
 
 .enrolment-subhead {
-  margin: 4px 0 10px;
+  margin: 2px 0 8px;
   color: var(--brand-primary);
   font-size: 14px;
 }
 
 .enrolment-choice {
   display: grid;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
-.enrolment-choice label,
-.enrolment-consent {
+.enrolment-form .enrolment-choice label,
+.enrolment-form label.enrolment-consent {
   display: flex;
+  flex-direction: row;
   align-items: flex-start;
   gap: 10px;
   color: var(--brand-text);
   font-weight: 600;
 }
 
-.enrolment-choice input,
-.enrolment-consent input {
-  width: auto;
-  min-height: 0;
-  margin-top: 3px;
+.enrolment-form .enrolment-choice input,
+.enrolment-form label.enrolment-consent input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  margin: 1px 0 0;
+  padding: 0;
 }
 
 .enrolment-note {
-  margin: 0 0 12px;
+  margin: 0 0 8px;
   color: var(--brand-muted);
   font-size: 14px;
 }
@@ -1319,6 +1342,17 @@ button {
   .enrolment-summary dl,
   .enrolment-success-list {
     grid-template-columns: 1fr;
+  }
+
+  .enrolment-field {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .enrolment-form input,
+  .enrolment-form select {
+    min-height: 44px;
   }
 
   .enrolment-actions .primary-button,
