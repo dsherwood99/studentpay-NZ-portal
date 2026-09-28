@@ -1,31 +1,61 @@
 /**
- * Portal New Enrolment stays off unless this deployment is sandbox.
- * Hiding the button is the rollback. JotForm is untouched.
+ * Sandbox shows New Enrolment when the API is a sandbox host and the flag
+ * is not explicitly off. Production shows it only when the flag is on, the
+ * API is the production host, and the signed-in Clerk user id is allowlisted.
+ * An empty allowlist admits nobody. JotForm is untouched.
  */
 export function portalEnrolmentAllowed({
   studentPayEnv = "",
   apiBaseUrl = "",
-  flag = ""
+  flag = "",
+  userId = "",
+  canaryUserIds = ""
 } = {}) {
   const env = String(studentPayEnv || "").trim().toLowerCase();
-
-  if (env !== "sandbox") {
-    return { enabled: false, reason: "environment" };
-  }
-
   const rawFlag = String(flag || "").trim().toLowerCase();
-
-  if (["false", "0", "no", "off"].includes(rawFlag)) {
-    return { enabled: false, reason: "flag" };
-  }
-
+  const flagOff = ["false", "0", "no", "off"].includes(rawFlag);
+  const flagOn = ["true", "1", "yes", "on"].includes(rawFlag);
   const api = String(apiBaseUrl || "").trim().toLowerCase();
+  const productionApi = api.includes("api.studentpay.co.nz");
+  const sandboxApi = api.includes("sandbox");
 
-  if (!api.includes("sandbox")) {
-    return { enabled: false, reason: "api" };
+  if (env === "sandbox") {
+    if (flagOff) {
+      return { enabled: false, reason: "flag" };
+    }
+
+    if (!sandboxApi || productionApi) {
+      return { enabled: false, reason: "api" };
+    }
+
+    return { enabled: true, reason: "sandbox" };
   }
 
-  return { enabled: true, reason: "sandbox" };
+  if (env === "production") {
+    if (!flagOn) {
+      return { enabled: false, reason: "flag" };
+    }
+
+    if (!productionApi || sandboxApi) {
+      return { enabled: false, reason: "api" };
+    }
+
+    const allowed = new Set(
+      String(canaryUserIds || "")
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean)
+    );
+    const currentUserId = String(userId || "").trim();
+
+    if (!currentUserId || !allowed.has(currentUserId)) {
+      return { enabled: false, reason: "canary" };
+    }
+
+    return { enabled: true, reason: "canary" };
+  }
+
+  return { enabled: false, reason: "environment" };
 }
 
 function addressForApi(address) {

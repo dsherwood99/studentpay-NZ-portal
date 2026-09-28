@@ -39,11 +39,35 @@ test("summary divides the financed amount and shows a remainder", () => {
   assert.equal(summary.amountFinanced, "$5,400.01");
 });
 
-test("enrolment stays off for production and for a non-sandbox API", () => {
+test("enrolment stays off for a mismatched environment and for a non-canary user", () => {
+  const production = {
+    studentPayEnv: "production",
+    apiBaseUrl: "https://api.studentpay.co.nz",
+    flag: "true",
+    userId: "user_canary",
+    canaryUserIds: "user_canary"
+  };
+
   assert.equal(
-    portalEnrolmentAllowed({ ...sandbox, studentPayEnv: "production" }).enabled,
+    portalEnrolmentAllowed({ ...production, flag: "" }).enabled,
     false
   );
+  assert.equal(
+    portalEnrolmentAllowed({ ...production, userId: "user_other" }).enabled,
+    false
+  );
+  assert.equal(
+    portalEnrolmentAllowed({ ...production, canaryUserIds: "" }).enabled,
+    false
+  );
+  assert.equal(
+    portalEnrolmentAllowed({
+      ...production,
+      apiBaseUrl: "https://studentpay-nz-api-sandbox.vercel.app"
+    }).enabled,
+    false
+  );
+  assert.equal(portalEnrolmentAllowed(production).enabled, true);
   assert.equal(portalEnrolmentAllowed({ ...sandbox, studentPayEnv: "" }).enabled, false);
   assert.equal(
     portalEnrolmentAllowed({

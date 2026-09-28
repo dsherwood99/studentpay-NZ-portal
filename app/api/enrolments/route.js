@@ -5,11 +5,13 @@ import {
   portalEnrolmentAllowed
 } from "../../lib/enrolment-guard.mjs";
 
-function availability() {
+function availability(userId = "") {
   return portalEnrolmentAllowed({
     studentPayEnv: process.env.STUDENTPAY_ENV || "",
     apiBaseUrl: process.env.STUDENTPAY_API_BASE_URL || "",
-    flag: process.env.PROVIDER_ENROLMENT_ENABLED || ""
+    flag: process.env.PROVIDER_ENROLMENT_ENABLED || "",
+    userId,
+    canaryUserIds: process.env.PROVIDER_ENROLMENT_CANARY_USER_IDS || ""
   });
 }
 
@@ -68,7 +70,8 @@ async function authorisedProvider() {
 }
 
 export async function GET() {
-  const gate = availability();
+  const user = await currentUser();
+  const gate = availability(user?.id || "");
 
   if (!gate.enabled) {
     return Response.json({ success: true, enabled: false });
@@ -93,7 +96,8 @@ export async function GET() {
 }
 
 export async function POST(request) {
-  const gate = availability();
+  const user = await currentUser();
+  const gate = availability(user?.id || "");
 
   if (!gate.enabled) {
     return Response.json(
