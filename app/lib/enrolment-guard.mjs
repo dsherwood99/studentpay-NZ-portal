@@ -28,6 +28,18 @@ export function portalEnrolmentAllowed({
   return { enabled: true, reason: "sandbox" };
 }
 
+function addressForApi(address) {
+  const source = address && typeof address === "object" ? address : {};
+
+  return {
+    street_address: source.street_address,
+    suburb: source.suburb,
+    region: source.region,
+    postcode: source.postcode,
+    country: source.country
+  };
+}
+
 const FORWARDED_KEYS = [
   "idempotency_key",
   "course_name",
@@ -49,8 +61,10 @@ export function enrolmentBodyForApi(input) {
     student: {
       first_name: student.first_name,
       last_name: student.last_name,
+      date_of_birth: student.date_of_birth,
       email: student.email,
-      mobile: student.mobile
+      mobile: student.mobile,
+      address: addressForApi(student.address)
     },
     course_name: source.course_name,
     plan: {
@@ -66,8 +80,10 @@ export function enrolmentBodyForApi(input) {
             student_is_payer: false,
             first_name: payer.first_name,
             last_name: payer.last_name,
+            date_of_birth: payer.date_of_birth,
             email: payer.email,
-            mobile: payer.mobile
+            mobile: payer.mobile,
+            address: addressForApi(payer.address)
           }
         : { student_is_payer: payer.student_is_payer },
     verbal_consent: source.verbal_consent === true

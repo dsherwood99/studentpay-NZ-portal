@@ -3,6 +3,12 @@
 import { useMemo, useState } from "react";
 
 import {
+  ageLabel,
+  enrolmentRequestBody,
+  localIsoDate,
+  validateEnrolmentDraft
+} from "../lib/enrolment-form.mjs";
+import {
   PAYMENT_FREQUENCIES,
   TERM_MONTHS,
   summarisePlan
@@ -11,8 +17,14 @@ import {
 const EMPTY = {
   firstName: "",
   lastName: "",
+  dateOfBirth: "",
   email: "",
   mobile: "",
+  studentStreet: "",
+  studentSuburb: "",
+  studentRegion: "",
+  studentPostcode: "",
+  studentCountry: "New Zealand",
   courseName: "",
   amount: "",
   upfront: "",
@@ -22,14 +34,73 @@ const EMPTY = {
   studentIsPayer: true,
   payerFirstName: "",
   payerLastName: "",
+  payerDateOfBirth: "",
   payerEmail: "",
   payerMobile: "",
+  payerStreet: "",
+  payerSuburb: "",
+  payerRegion: "",
+  payerPostcode: "",
+  payerCountry: "New Zealand",
   agentName: "",
   verbalConsent: false
 };
 
 function plainMoney(value) {
   return String(value || "").trim().replace(/[$,\s]/g, "");
+}
+
+function AddressFields({ prefix, form, update }) {
+  return (
+    <>
+      <label className="enrolment-span">
+        Street address
+        <input
+          required
+          autoComplete="street-address"
+          value={form[`${prefix}Street`]}
+          onChange={(event) => update(`${prefix}Street`, event.target.value)}
+        />
+      </label>
+      <label>
+        Suburb / city
+        <input
+          required
+          autoComplete="address-level2"
+          value={form[`${prefix}Suburb`]}
+          onChange={(event) => update(`${prefix}Suburb`, event.target.value)}
+        />
+      </label>
+      <label>
+        Region
+        <input
+          required
+          autoComplete="address-level1"
+          value={form[`${prefix}Region`]}
+          onChange={(event) => update(`${prefix}Region`, event.target.value)}
+        />
+      </label>
+      <label>
+        Postcode
+        <input
+          required
+          inputMode="numeric"
+          autoComplete="postal-code"
+          value={form[`${prefix}Postcode`]}
+          onChange={(event) => update(`${prefix}Postcode`, event.target.value)}
+        />
+      </label>
+      <label>
+        Country
+        <input
+          required
+          autoComplete="country-name"
+          value={form[`${prefix}Country`]}
+          onChange={(event) => update(`${prefix}Country`, event.target.value)}
+        />
+      </label>
+    </>
+  );
 }
 
 export default function NewEnrolment({
@@ -44,6 +115,7 @@ export default function NewEnrolment({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
+  const today = localIsoDate();
 
   const summary = useMemo(
     () =>
@@ -69,43 +141,23 @@ export default function NewEnrolment({
       return;
     }
 
+    const problems = validateEnrolmentDraft(form, today);
+
+    if (problems.length > 0) {
+      setError(problems[0]);
+      return;
+    }
+
     setSubmitting(true);
     setError("");
-
-    const payer = form.studentIsPayer
-      ? { student_is_payer: true }
-      : {
-          student_is_payer: false,
-          first_name: form.payerFirstName,
-          last_name: form.payerLastName,
-          email: form.payerEmail,
-          mobile: form.payerMobile
-        };
 
     try {
       const response = await fetch("/api/enrolments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          idempotency_key: idempotencyKey,
-          student: {
-            first_name: form.firstName,
-            last_name: form.lastName,
-            email: form.email,
-            mobile: form.mobile
-          },
-          course_name: form.courseName,
-          plan: {
-            amount: plainMoney(form.amount),
-            upfront_payment: plainMoney(form.upfront || "0"),
-            first_payment_date: form.firstPaymentDate,
-            payment_frequency: form.frequency,
-            term_months: Number(form.termMonths)
-          },
-          payer,
-          verbal_consent: form.verbalConsent,
-          ...(needsAgentName ? { agent_name: form.agentName } : {})
-        })
+        body: JSON.stringify(
+          enrolmentRequestBody(form, { idempotencyKey, needsAgentName })
+        )
       });
       const payload = await response.json().catch(() => ({}));
 
@@ -175,6 +227,9 @@ export default function NewEnrolment({
     );
   }
 
+  const studentAge = ageLabel(form.dateOfBirth, today);
+  const payerAge = ageLabel(form.payerDateOfBirth, today);
+
   return (
     <section className="preview-panel enrolment-panel">
       <div className="preview-panel-header">
@@ -214,14 +269,16 @@ export default function NewEnrolment({
               />
             </label>
             <label>
-              Email
+              Date of birth
               <input
                 required
-                type="email"
-                autoComplete="email"
-                value={form.email}
-                onChange={(event) => update("email", event.target.value)}
+                type="date"
+                min="1900-01-01"
+                max={today}
+                value={form.dateOfBirth}
+                onChange={(event) => update("dateOfBirth", event.target.value)}
               />
+              {studentAge ? <span className="enrolment-age">{studentAge}</span> : null}
             </label>
             <label>
               Mobile
@@ -235,13 +292,30 @@ export default function NewEnrolment({
                 onChange={(event) => update("mobile", event.target.value)}
               />
             </label>
+            <label className="enrolment-span">
+              Email
+              <input
+                required
+                type="email"
+                autoComplete="email"
+                value={form.email}
+                onChange={(event) => update("email", event.target.value)}
+              />
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset className="enrolment-section">
+          <legend>Student address</legend>
+          <div className="enrolment-grid">
+            <AddressFields prefix="student" form={form} update={update} />
           </div>
         </fieldset>
 
         <fieldset className="enrolment-section">
           <legend>Course</legend>
           <label>
-            Course name
+            Course
             <input
               required
               value={form.courseName}
@@ -311,7 +385,101 @@ export default function NewEnrolment({
           </div>
         </fieldset>
 
-        <aside className="enrolment-summary" aria-live="polite">
+        <fieldset className="enrolment-section">
+          <legend>Payer</legend>
+          <div className="enrolment-choice">
+            <label>
+              <input
+                type="radio"
+                name="payer"
+                checked={form.studentIsPayer}
+                onChange={() => update("studentIsPayer", true)}
+              />
+              Student is the payer
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="payer"
+                checked={!form.studentIsPayer}
+                onChange={() => update("studentIsPayer", false)}
+              />
+              Someone else will make the payments
+            </label>
+          </div>
+          {form.studentIsPayer ? (
+            <p className="enrolment-note">
+              The payer will use the student name, date of birth, email, mobile,
+              and residential address.
+            </p>
+          ) : (
+            <>
+              <h3 className="enrolment-subhead">Payer details</h3>
+              <div className="enrolment-grid">
+                <label>
+                  First name
+                  <input
+                    required
+                    value={form.payerFirstName}
+                    onChange={(event) =>
+                      update("payerFirstName", event.target.value)
+                    }
+                  />
+                </label>
+                <label>
+                  Last name
+                  <input
+                    required
+                    value={form.payerLastName}
+                    onChange={(event) =>
+                      update("payerLastName", event.target.value)
+                    }
+                  />
+                </label>
+                <label>
+                  Date of birth
+                  <input
+                    required
+                    type="date"
+                    min="1900-01-01"
+                    max={today}
+                    value={form.payerDateOfBirth}
+                    onChange={(event) =>
+                      update("payerDateOfBirth", event.target.value)
+                    }
+                  />
+                  {payerAge ? <span className="enrolment-age">{payerAge}</span> : null}
+                </label>
+                <label>
+                  Mobile
+                  <input
+                    required
+                    type="tel"
+                    value={form.payerMobile}
+                    onChange={(event) =>
+                      update("payerMobile", event.target.value)
+                    }
+                  />
+                </label>
+                <label className="enrolment-span">
+                  Email
+                  <input
+                    required
+                    type="email"
+                    value={form.payerEmail}
+                    onChange={(event) => update("payerEmail", event.target.value)}
+                  />
+                </label>
+              </div>
+              <h3 className="enrolment-subhead">Payer address</h3>
+              <div className="enrolment-grid">
+                <AddressFields prefix="payer" form={form} update={update} />
+              </div>
+            </>
+          )}
+        </fieldset>
+
+        <section className="enrolment-summary" aria-live="polite">
           <h3>Payment plan summary</h3>
           {summary ? (
             <dl>
@@ -353,75 +521,7 @@ export default function NewEnrolment({
           ) : (
             <p>Enter the plan amount, term, and frequency to see the payments.</p>
           )}
-        </aside>
-
-        <fieldset className="enrolment-section">
-          <legend>Payer</legend>
-          <div className="enrolment-choice">
-            <label>
-              <input
-                type="radio"
-                name="payer"
-                checked={form.studentIsPayer}
-                onChange={() => update("studentIsPayer", true)}
-              />
-              Student is the payer
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="payer"
-                checked={!form.studentIsPayer}
-                onChange={() => update("studentIsPayer", false)}
-              />
-              Someone else will make the payments
-            </label>
-          </div>
-          {!form.studentIsPayer ? (
-            <div className="enrolment-grid">
-              <label>
-                Payer first name
-                <input
-                  required
-                  value={form.payerFirstName}
-                  onChange={(event) =>
-                    update("payerFirstName", event.target.value)
-                  }
-                />
-              </label>
-              <label>
-                Payer last name
-                <input
-                  required
-                  value={form.payerLastName}
-                  onChange={(event) =>
-                    update("payerLastName", event.target.value)
-                  }
-                />
-              </label>
-              <label>
-                Payer email
-                <input
-                  required
-                  type="email"
-                  value={form.payerEmail}
-                  onChange={(event) => update("payerEmail", event.target.value)}
-                />
-              </label>
-              <label>
-                Payer mobile
-                <input
-                  required
-                  type="tel"
-                  value={form.payerMobile}
-                  onChange={(event) =>
-                    update("payerMobile", event.target.value)
-                  }
-                />
-              </label>
-            </div>
-          ) : null}
-        </fieldset>
+        </section>
 
         <fieldset className="enrolment-section">
           <legend>Verbal consent</legend>
@@ -436,8 +536,7 @@ export default function NewEnrolment({
             </label>
           ) : (
             <p className="enrolment-note">
-              This enrolment will be recorded for {agentName}
-              {providerName ? ` at ${providerName}` : ""}.
+              {`This enrolment will be recorded for ${agentName}${providerName ? ` at ${providerName}` : ""}.`}
             </p>
           )}
           <label className="enrolment-consent">

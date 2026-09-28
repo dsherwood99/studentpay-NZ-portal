@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { SignIn } from '@clerk/nextjs';
 import '../../styles.css';
 
@@ -6,12 +7,27 @@ export default function SignInPage() {
     <main className="auth-page">
       <section className="auth-left">
         <div className="auth-content">
-          
+          <div className="auth-brand">
+            <Image
+              src="/brand/studentpay-nz-logo.jpg"
+              alt="StudentPay NZ"
+              width={58}
+              height={44}
+              className="auth-logo"
+              priority
+            />
+            <span className="auth-brand-copy">
+              <span className="auth-brand-kicker">StudentPay NZ</span>
+              <span className="auth-brand-product">Provider Portal</span>
+            </span>
+          </div>
 
           <h1>
-            Welcome to the<br />
-            <span>StudentPay</span><br />
-            NZ Provider Portal
+            Welcome to the
+            <br />
+            <span>StudentPay NZ</span>
+            <br />
+            Provider Portal
           </h1>
 
           <p>
@@ -20,18 +36,16 @@ export default function SignInPage() {
           </p>
 
           <div className="auth-form-wrap">
-<SignIn
-  routing="path"
-  path="/sign-in"
-  forceRedirectUrl="/"
-/>
+            <SignIn
+              routing="path"
+              path="/sign-in"
+              forceRedirectUrl="/"
+            />
           </div>
         </div>
       </section>
 
       <section className="auth-right">
-        
-
         <div className="auth-image-overlay">
           <h3>Smart payments. Stronger futures.</h3>
           <p>Technology that powers education and supports every journey.</p>
