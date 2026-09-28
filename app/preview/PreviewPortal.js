@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { UserButton, useUser } from '@clerk/nextjs';
 import PortalShell from '../components/PortalShell';
+import NewEnrolment from './NewEnrolment';
 import './preview.css';
 
 export default function PreviewPortal() {
@@ -21,6 +22,11 @@ export default function PreviewPortal() {
   const [collections, setCollections] = useState(null);
   const [collectionsLoading, setCollectionsLoading] = useState(true);
   const [collectionsError, setCollectionsError] = useState('');
+  const [enrolmentEnabled, setEnrolmentEnabled] = useState(false);
+  const [agentName, setAgentName] = useState('');
+  const [needsAgentName, setNeedsAgentName] = useState(false);
+  const [enrolmentOpen, setEnrolmentOpen] = useState(false);
+  const [enrolmentKey, setEnrolmentKey] = useState(0);
 
   useEffect(() => {
     async function loadPlans() {
@@ -89,6 +95,29 @@ export default function PreviewPortal() {
     loadCollections();
   }, []);
 
+  useEffect(() => {
+    async function loadEnrolment() {
+      try {
+        const response = await fetch('/api/enrolments', { cache: 'no-store' });
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok || !data.enabled) {
+          setEnrolmentEnabled(false);
+          return;
+        }
+
+        setEnrolmentEnabled(true);
+        setProviderName((current) => current || data.providerName || '');
+        setAgentName(data.agentName || '');
+        setNeedsAgentName(Boolean(data.needsAgentName));
+      } catch {
+        setEnrolmentEnabled(false);
+      }
+    }
+
+    loadEnrolment();
+  }, []);
+
   return (
     <PortalShell
       firstName={userIsLoaded ? firstName : ''}
@@ -100,6 +129,24 @@ export default function PreviewPortal() {
       collectionsLoading={collectionsLoading}
       collectionsError={collectionsError}
       accountSlot={<UserButton afterSignOutUrl="/sign-in" />}
+      enrolmentEnabled={enrolmentEnabled}
+      onNewEnrolment={() => setEnrolmentOpen(true)}
+      enrolmentView={
+        enrolmentOpen ? (
+          <NewEnrolment
+            key={enrolmentKey}
+            providerName={providerName}
+            agentName={agentName}
+            needsAgentName={needsAgentName}
+            onCancel={() => setEnrolmentOpen(false)}
+            onCreated={(_enrolment, options) => {
+              if (options?.another) {
+                setEnrolmentKey((current) => current + 1);
+              }
+            }}
+          />
+        ) : null
+      }
     />
   );
 }

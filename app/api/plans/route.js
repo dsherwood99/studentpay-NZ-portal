@@ -6,6 +6,83 @@ import {
   getSalesforceToken,
 } from '../../../lib/salesforce.js';
 
+async function sandboxPlans({ user, providerName }) {
+  const apiBase = String(process.env.STUDENTPAY_API_BASE_URL || "").replace(/\/$/, "");
+  const apiKey = String(process.env.PORTAL_ENROLMENT_API_KEY || "");
+
+  if (!apiBase.toLowerCase().includes("sandbox") || !apiKey) {
+    return Response.json(
+      {
+        success: false,
+        count: 0,
+        plans: [],
+        environment: "sandbox",
+        error: "Sandbox payment plans are not available in this environment.",
+      },
+      { status: 503 }
+    );
+  }
+
+  const agentName = [user.firstName, user.lastName].filter(Boolean).join(" ");
+  const email = String(user.primaryEmailAddress?.emailAddress || "")
+    .trim()
+    .toLowerCase();
+
+  let upstream;
+
+  try {
+    upstream = await fetch(`${apiBase}/v1/provider/plans`, {
+      headers: {
+        "x-studentpay-portal-enrolment-key": apiKey,
+        "x-studentpay-provider-name": providerName,
+        "x-studentpay-agent-email": email,
+        "x-studentpay-agent-name": agentName,
+        "x-studentpay-agent-user-id": user.id,
+      },
+      cache: "no-store",
+    });
+  } catch {
+    return Response.json(
+      {
+        success: false,
+        count: 0,
+        plans: [],
+        environment: "sandbox",
+        error: "Sandbox payment plans could not be loaded.",
+      },
+      { status: 502 }
+    );
+  }
+
+  const payload = await upstream.json().catch(() => ({}));
+
+  if (!upstream.ok || !payload.success) {
+    return Response.json(
+      {
+        success: false,
+        count: 0,
+        plans: [],
+        environment: "sandbox",
+        error: payload?.error?.message || "Sandbox payment plans could not be loaded.",
+      },
+      { status: upstream.status || 502 }
+    );
+  }
+
+  return Response.json({
+    success: true,
+    environment: "sandbox",
+    count: payload.count || 0,
+    providerName: payload.providerName || providerName,
+    userName:
+      user.firstName ||
+      user.fullName ||
+      user.primaryEmailAddress?.emailAddress ||
+      "",
+    plans: payload.plans || [],
+  });
+}
+
 export async function GET() {
   try {
     const user = await currentUser();
@@ -30,6 +107,10 @@ export async function GET() {
         plans: [],
         message: scope.message,
       });
+    }
+
+    if (String(process.env.STUDENTPAY_ENV || "").toLowerCase() === "sandbox") {
+      return sandboxPlans({ user, providerName: scope.providerName });
     }
 
     const tokenData = await getSalesforceToken();

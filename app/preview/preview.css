@@ -178,9 +178,17 @@ button {
    ========================================================= */
 
 .preview-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
   margin-top: 28px;
   margin-bottom: 8px;
   padding: 8px 0 4px;
+}
+
+.preview-hero .primary-button {
+  flex: none;
 }
 
 .preview-eyebrow {
@@ -680,6 +688,12 @@ button {
   background: var(--brand-primary-hover);
 }
 
+.primary-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+  transform: none;
+}
+
 .secondary-button {
   background: var(--brand-background);
   color: var(--brand-text);
@@ -1100,8 +1114,215 @@ button {
     height: 38px;
     width: 50px;
   }
-
   .preview-brand-kicker {
     font-size: 9px;
+  }
+}
+
+.enrolment-panel,
+.enrolment-success {
+  margin: 24px auto;
+}
+
+.enrolment-form {
+  display: grid;
+  gap: 16px;
+  padding: 0 22px 22px;
+}
+
+.enrolment-section {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--brand-border);
+  border-radius: 16px;
+  background: var(--brand-surface);
+}
+
+.enrolment-section legend {
+  padding: 0 6px;
+  color: var(--brand-primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.enrolment-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 14px;
+}
+
+.enrolment-span {
+  grid-column: 1 / -1;
+}
+
+.enrolment-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--brand-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.enrolment-form input,
+.enrolment-form select {
+  min-height: 42px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--brand-border);
+  border-radius: 10px;
+  background: var(--brand-background);
+  color: var(--brand-text);
+}
+
+.enrolment-form input:focus,
+.enrolment-form select:focus {
+  outline: 3px solid color-mix(in srgb, var(--brand-primary) 25%, transparent);
+  border-color: var(--brand-primary);
+}
+
+.enrolment-age {
+  color: var(--brand-primary);
+  font-weight: 700;
+}
+
+.enrolment-summary {
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: var(--brand-primary);
+  color: white;
+}
+
+.enrolment-summary h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+.enrolment-summary dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 24px;
+  margin: 0;
+}
+
+.enrolment-summary div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.enrolment-summary dt {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+}
+
+.enrolment-summary dd {
+  margin: 0;
+  text-align: right;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.enrolment-summary p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.enrolment-subhead {
+  margin: 4px 0 10px;
+  color: var(--brand-primary);
+  font-size: 14px;
+}
+
+.enrolment-choice {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.enrolment-choice label,
+.enrolment-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--brand-text);
+  font-weight: 600;
+}
+
+.enrolment-choice input,
+.enrolment-consent input {
+  width: auto;
+  min-height: 0;
+  margin-top: 3px;
+}
+
+.enrolment-note {
+  margin: 0 0 12px;
+  color: var(--brand-muted);
+  font-size: 14px;
+}
+
+.enrolment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.enrolment-error {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fde8e8;
+  color: #9b1c1c;
+  font-size: 14px;
+}
+
+.enrolment-success {
+  padding: 28px;
+}
+
+.enrolment-success h2 {
+  margin: 0 0 8px;
+}
+
+.enrolment-success-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.enrolment-success-list div {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--brand-surface);
+}
+
+.enrolment-success-list dt {
+  color: var(--brand-muted);
+  font-size: 12px;
+}
+
+.enrolment-success-list dd {
+  margin: 4px 0 0;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .enrolment-panel,
+  .enrolment-success {
+    margin: 16px auto;
+  }
+
+  .enrolment-grid,
+  .enrolment-summary dl,
+  .enrolment-success-list {
+    grid-template-columns: 1fr;
+  }
+
+  .enrolment-actions .primary-button,
+  .enrolment-actions .secondary-button {
+    width: 100%;
   }
 }

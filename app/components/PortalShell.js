@@ -37,6 +37,9 @@ export default function PortalShell({
   collectionsError = '',
   demoBanner = false,
   accountSlot = null,
+  enrolmentEnabled = false,
+  onNewEnrolment = null,
+  enrolmentView = null,
 }) {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -205,6 +208,8 @@ export default function PortalShell({
         </div>
       </header>
 
+      {enrolmentView || (
+      <>
       <section className="preview-hero">
         <div>
           <span className="preview-eyebrow">StudentPay Provider Portal</span>
@@ -213,6 +218,11 @@ export default function PortalShell({
             <p className="preview-provider">{providerName}</p>
           ) : null}
         </div>
+        {enrolmentEnabled && onNewEnrolment ? (
+          <button type="button" className="primary-button" onClick={onNewEnrolment}>
+            New enrolment
+          </button>
+        ) : null}
       </section>
 
       {loading && (
@@ -537,6 +547,8 @@ export default function PortalShell({
             </div>
           </section>
         </div>
+      )}
+      </>
       )}
     </main>
   );
