@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import CollectionsChart from './CollectionsChart';
+import PlanDetailModal from './PlanDetailModal';
 import { buildPortfolioCsv } from '../../lib/portfolio-export.js';
 import { buildPortfolioSummary } from '../../lib/portfolio-summary.js';
 import '../preview/preview.css';
@@ -409,144 +410,13 @@ export default function PortalShell({
       )}
 
       {selectedPlan && (
-        <div
-          className="detail-overlay"
-          role="presentation"
-          onMouseDown={() => setSelectedPlan(null)}
-        >
-          <section
-            className="detail-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="plan-detail-title"
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <div className="detail-modal-header">
-              <div>
-                <span className="preview-eyebrow">Payment plan</span>
-                <h2 id="plan-detail-title">{selectedPlan.plan}</h2>
-                <p>{selectedPlan.student}</p>
-              </div>
-              <button
-                type="button"
-                className="detail-close"
-                onClick={() => setSelectedPlan(null)}
-                aria-label="Close plan details"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="detail-banner">
-              <div>
-                <span>Account balance</span>
-                <strong>{formatCurrency(selectedPlan.remaining)}</strong>
-              </div>
-              <div className="detail-banner-status">
-                <span
-                  className={`status-badge ${getStatusClass(
-                    selectedPlan.status
-                  )}`}
-                >
-                  {selectedPlan.status}
-                </span>
-                <small>
-                  {Number(selectedPlan.daysInArrears || 0) > 0
-                    ? `${selectedPlan.daysInArrears} days overdue`
-                    : 'No overdue days'}
-                </small>
-              </div>
-            </div>
-
-            <div className="detail-grid">
-              <article className="detail-section">
-                <h3>Plan Summary</h3>
-                <div className="detail-row">
-                  <span>Student</span>
-                  <strong>{selectedPlan.student || '—'}</strong>
-                </div>
-                <div className="detail-row">
-                  <span>Course</span>
-                  <strong>{selectedPlan.course || '—'}</strong>
-                </div>
-                <div className="detail-row">
-                  <span>Agreement Date</span>
-                  <strong>{formatDate(selectedPlan.agreementDate)}</strong>
-                </div>
-                <div className="detail-row">
-                  <span>Stage</span>
-                  <strong>{selectedPlan.stage || '—'}</strong>
-                </div>
-                <div className="detail-row">
-                  <span>Authorisation</span>
-                  <strong>{selectedPlan.authorisationStatus || '—'}</strong>
-                </div>
-              </article>
-
-              <article className="detail-section financial-section">
-                <h3>Financial Summary</h3>
-                <div className="detail-row">
-                  <span>Total Plan Amount</span>
-                  <strong>{formatCurrency(selectedPlan.amount)}</strong>
-                </div>
-                <div className="detail-row">
-                  <span>Collected to Date</span>
-                  <strong className="positive-value">
-                    {formatCurrency(selectedPlan.collected)}
-                  </strong>
-                </div>
-                <div className="detail-row">
-                  <span>Remaining Balance</span>
-                  <strong>{formatCurrency(selectedPlan.remaining)}</strong>
-                </div>
-                <div className="detail-row">
-                  <span>Overdue Balance</span>
-                  <strong className="overdue-value">
-                    {formatCurrency(selectedPlan.overdue)}
-                  </strong>
-                </div>
-              </article>
-
-              <article className="detail-section">
-                <h3>Payment Schedule</h3>
-                <div className="detail-row">
-                  <span>Payment Frequency</span>
-                  <strong>{selectedPlan.frequency || '—'}</strong>
-                </div>
-                <div className="detail-row">
-                  <span>Instalment Amount</span>
-                  <strong>
-                    {formatCurrency(selectedPlan.paymentAmount)}
-                  </strong>
-                </div>
-              </article>
-
-              <article className="detail-section collections-section">
-                <h3>Collections Summary</h3>
-                <div className="detail-row">
-                  <span>Arrears Category</span>
-                  <strong>{selectedPlan.status || '—'}</strong>
-                </div>
-                <div className="detail-row">
-                  <span>Oldest Overdue</span>
-                  <strong>
-                    {Number(selectedPlan.daysInArrears || 0)} days
-                  </strong>
-                </div>
-              </article>
-            </div>
-
-            <div className="detail-actions">
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => setSelectedPlan(null)}
-              >
-                Close
-              </button>
-            </div>
-          </section>
-        </div>
+        <PlanDetailModal
+          plan={selectedPlan}
+          onClose={() => setSelectedPlan(null)}
+          formatCurrency={formatCurrency}
+          formatDate={formatDate}
+          statusClass={getStatusClass(selectedPlan.status)}
+        />
       )}
       </>
       )}
